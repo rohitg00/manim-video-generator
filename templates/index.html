@@ -201,6 +201,21 @@
 
 {% block scripts %}
 <script>
+    
+    const form = document.getElementById("generationForm");
+    const textarea = document.getElementById("concept");
+    textarea.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            const concept = textarea.value.trim();
+            if (!concept) {
+              return;
+            }
+
+            form.dispatchEvent(new Event("submit", { cancelable: true }));
+          }
+        });
+
     document.getElementById('generationForm').addEventListener('submit', async function(e) {
         e.preventDefault();
 
