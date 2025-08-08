@@ -90,6 +90,52 @@ def sanitize_title(text):
     text = sanitize_input(text)
     return text.replace('"', '').replace("'", "").strip()
 
+# --- Helper functions for LaTeX detection & scene generation -----------------
+
+def is_likely_latex(text: str) -> bool:
+    """Heuristically decide if the provided string is LaTeX math."""
+    if not text:
+        return False
+    t = text.strip()
+    indicators = [
+        "\\frac", "\\sum", "\\int", "\\lim", "\\begin{", "\\end{",
+        "\\alpha", "\\beta", "\\gamma", "\\rightarrow", "\\cdot",
+        "$", "\\(", "\\)", "\\[", "\\]"
+    ]
+    if any(ind in t for ind in indicators):
+        return True
+    # presence of '^' or '_' together with backslash usually indicates LaTeX
+    if ("^" in t or "_" in t) and "\\" in t:
+        return True
+    return False
+
+
+def clean_latex(text: str) -> str:
+    """Strip surrounding math delimiters such as $...$, $$...$$, \\[...\\]."""
+    if not text:
+        return ""
+    s = text.strip()
+    if (s.startswith("$$") and s.endswith("$$")) or (s.startswith("$") and s.endswith("$")):
+        s = s.strip("$")
+    if (s.startswith("\\[") and s.endswith("\\]")) or (s.startswith("\\(") and s.endswith("\\)")):
+        s = s[2:-2].strip()
+    return s
+
+
+def generate_latex_scene_code(latex_str: str) -> str:
+    """Return Manim code that directly renders the supplied LaTeX string."""
+    return f'''from manim import *
+
+class MainScene(Scene):
+    def construct(self):
+        template = TexTemplate()
+        template.add_to_preamble(r"\\usepackage{{amsmath,amssymb,mathtools}}")
+        eq = MathTex(r\"\"\"{latex_str}\"\"\", tex_template=template)
+        eq.scale(1.1)
+        self.play(Write(eq))
+        self.wait(2)
+'''
+
 def generate_manim_prompt(concept):
     """Generate a detailed prompt for GPT to create Manim code"""
     return f"""Create a detailed Manim animation to demonstrate and explain: {concept}
@@ -460,9 +506,7 @@ class MainScene(ThreeDScene):
         r_label.next_to(radius_line, UP)
         
         # Create volume formula
-        volume_formula = Text(
-            "V = \\frac{4}{3}\\pi r^3"
-        ).to_corner(UL)
+        volume_formula = MathTex(r"V = \\frac{4}{3}\\pi r^3").to_corner(UL)
         
         # Add everything to scene
         self.add(axes)
@@ -673,27 +717,18 @@ class MainScene(Scene):
 
 def generate_diff_eq_code():
     return '''from manim import *
+import numpy as np
 
 class MainScene(Scene):
     def construct(self):
         # Create differential equation
-        eq = Text(
-            "\\frac{dy}{dx} + 2y = e^x"
-        )
+        eq = MathTex(r"\\frac{dy}{dx} + 2y = e^x")
         
         # Solution steps
-        step1 = Text(
-            "y = e^{-2x}\\int e^x \\cdot e^{2x} dx"
-        )
-        step2 = Text(
-            "y = e^{-2x}\\int e^{3x} dx"
-        )
-        step3 = Text(
-            "y = e^{-2x} \\cdot \\frac{1}{3}e^{3x} + Ce^{-2x}"
-        )
-        step4 = Text(
-            "y = \\frac{1}{3}e^x + Ce^{-2x}"
-        )
+        step1 = MathTex(r"y = e^{-2x}\\int e^x \\cdot e^{2x} \\, dx")
+        step2 = MathTex(r"y = e^{-2x}\\int e^{3x} \\, dx")
+        step3 = MathTex(r"y = e^{-2x} \\cdot \\frac{1}{3}e^{3x} + C e^{-2x}")
+        step4 = MathTex(r"y = \\frac{1}{3}e^x + C e^{-2x}")
         
         # Arrange equations
         VGroup(
@@ -875,6 +910,7 @@ class MainScene(Scene):
 
 def generate_3d_surface_code():
     return '''from manim import *
+import numpy as np
 
 class MainScene(ThreeDScene):
     def construct(self):
@@ -911,6 +947,7 @@ class MainScene(ThreeDScene):
 
 def generate_sphere_code():
     return '''from manim import *
+import numpy as np
 
 class MainScene(ThreeDScene):
     def construct(self):
@@ -1025,7 +1062,10 @@ def generate():
         if not concept:
             return jsonify({'error': 'No concept provided'}), 400
             
-        concept = sanitize_input(concept)
+        # Preserve the raw user input for LaTeX detection while also keeping a
+        # safely-sanitised copy for keyword matching and filenames.
+        original_concept = concept
+        sanitized_concept = sanitize_input(concept)
         
         # Generate unique filename
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -1039,7 +1079,16 @@ def generate():
         try:
             # Get appropriate template code
             try:
-                manim_code = select_template(concept.lower())
+                # If the user provided a stand-alone LaTeX expression we bypass
+                # all keyword heuristics and build a tiny scene that simply
+                # renders the equation with MathTex. Otherwise fall back to the
+                # normal template selection pipeline.
+                if is_likely_latex(original_concept):
+                    manim_code = generate_latex_scene_code(
+                        clean_latex(original_concept)
+                    )
+                else:
+                    manim_code = select_template(sanitized_concept.lower())
             except Exception as template_error:
                 logger.error(f'Template selection error: {str(template_error)}')
                 # Fallback to basic visualization if template selection fails
