@@ -46,3 +46,14 @@ media/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Local virtual envs
+.venv/
+venv/
+
+# Temp rendering and scratch
+/tmp/
+tmp/
+
+# Generated videos
+static/videos/
