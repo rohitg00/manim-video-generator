@@ -7,12 +7,13 @@ import uuid
 import shutil
 import json
 from manim import *
-import openai
+from openai import OpenAI
 from dotenv import load_dotenv
 from datetime import datetime
 import time
 import random
 import io
+import re
 
 # Load environment variables
 load_dotenv()
@@ -63,8 +64,16 @@ os.makedirs(os.path.join(app.root_path, 'static', 'videos'), exist_ok=True)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize OpenAI client
-openai.api_key = os.getenv('OPENAI_API_KEY')
+# --- OpenAI / rendering defaults --------------------------------------------
+OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
+RENDER_QUALITY_DEFAULT = os.getenv('RENDER_QUALITY', 'low').lower()
+try:
+    openai_client = OpenAI()
+except Exception:
+    openai_client = None
+
+# Note: API key is read automatically from the OPENAI_API_KEY env var by the
+# new OpenAI client. No explicit assignment needed.
 
 # Set media and temporary directories with fallback to local paths
 if os.environ.get('DOCKER_ENV'):
@@ -89,6 +98,74 @@ def sanitize_title(text):
     """Sanitize text for use in title"""
     text = sanitize_input(text)
     return text.replace('"', '').replace("'", "").strip()
+
+# --- LaTeX helpers -----------------------------------------------------------
+LATEX_COMMAND_HINTS = [
+    r"\\frac", r"\\sum", r"\\int", r"\\sqrt", r"\\alpha", r"\\beta",
+    r"\\pi", r"\\sin", r"\\cos", r"\\tan", r"\\left", r"\\right",
+]
+
+def is_likely_latex(text: str) -> bool:
+    t = text.strip()
+    if not t:
+        return False
+    if any(d in t for d in ["$$", "$", r"\\(", r"\\)", r"\\[", r"\\]"]):
+        return True
+    if any(cmd in t for cmd in LATEX_COMMAND_HINTS):
+        return True
+    if ("^" in t or "_" in t) and " " not in t.strip()[:3]:
+        return True
+    return False
+
+def clean_latex(text: str) -> str:
+    t = text.strip()
+    # remove common delimiters
+    t = re.sub(r"^\$+|\$+$", "", t)
+    t = re.sub(r"^\\\(|\\\)$", "", t)
+    t = re.sub(r"^\\\[|\\\]$", "", t)
+    return t.strip()
+
+def generate_latex_scene_code(expr: str) -> str:
+    expr = clean_latex(expr)
+    return f"""from manim import *\n\nclass MainScene(Scene):\n    def construct(self):\n        title = Title('LaTeX')\n        eq = MathTex(r"{expr}").scale(1.2)\n        self.play(Write(title))\n        self.play(Write(eq))\n        self.wait()\n"""
+
+# --- AI helpers --------------------------------------------------------------
+
+def extract_code_from_response(text: str) -> str:
+    if not text:
+        return ""
+    # Try fenced code blocks with language
+    m = re.search(r"```(?:python)?\n([\s\S]*?)```", text, re.IGNORECASE)
+    if m:
+        return m.group(1).strip()
+    return text.strip()
+
+
+def generate_ai_manim_code(concept: str) -> str:
+    if openai_client is None:
+        return ""
+    try:
+        sys_prompt = (
+            "You are a senior Manim expert. Generate only valid Python code for Manim. "
+            "Create a scene class named MainScene (or ThreeDScene when appropriate). "
+            "Use MathTex for any mathematical expressions. Do not include markdown."
+        )
+        user_prompt = generate_manim_prompt(concept)
+        resp = openai_client.chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": sys_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.2,
+            max_tokens=1200,
+        )
+        content = resp.choices[0].message.content if resp and resp.choices else ""
+        code = extract_code_from_response(content)
+        return code
+    except Exception as e:
+        logger.error(f"AI generation failed: {e}")
+        return ""
 
 def generate_manim_prompt(concept):
     """Generate a detailed prompt for GPT to create Manim code"""
@@ -259,8 +336,8 @@ class MainScene(Scene):
             UP+RIGHT
         )
         
-        # Add equation using Text
-        equation = Text("a² + b² = c²", font_size=36)
+        # Add equation using MathTex
+        equation = MathTex(r"a^2 + b^2 = c^2").scale(1.1)
         equation.to_edge(UP)
         
         # Create the animation
@@ -421,6 +498,7 @@ class MainScene(ThreeDScene):
 
 def generate_sphere_code():
     return '''from manim import *
+import numpy as np
 
 class MainScene(ThreeDScene):
     def construct(self):
@@ -460,9 +538,7 @@ class MainScene(ThreeDScene):
         r_label.next_to(radius_line, UP)
         
         # Create volume formula
-        volume_formula = Text(
-            "V = \\frac{4}{3}\\pi r^3"
-        ).to_corner(UL)
+        volume_formula = MathTex(r"\frac{4}{3}\pi r^3").to_corner(UL)
         
         # Add everything to scene
         self.add(axes)
@@ -673,27 +749,18 @@ class MainScene(Scene):
 
 def generate_diff_eq_code():
     return '''from manim import *
+import numpy as np
 
 class MainScene(Scene):
     def construct(self):
         # Create differential equation
-        eq = Text(
-            "\\frac{dy}{dx} + 2y = e^x"
-        )
+        eq = MathTex(r"\\frac{dy}{dx} + 2y = e^x")
         
         # Solution steps
-        step1 = Text(
-            "y = e^{-2x}\\int e^x \\cdot e^{2x} dx"
-        )
-        step2 = Text(
-            "y = e^{-2x}\\int e^{3x} dx"
-        )
-        step3 = Text(
-            "y = e^{-2x} \\cdot \\frac{1}{3}e^{3x} + Ce^{-2x}"
-        )
-        step4 = Text(
-            "y = \\frac{1}{3}e^x + Ce^{-2x}"
-        )
+        step1 = MathTex(r"y = e^{-2x}\\int e^x \\cdot e^{2x} dx")
+        step2 = MathTex(r"y = e^{-2x}\\int e^{3x} dx")
+        step3 = MathTex(r"y = e^{-2x} \\cdot \\frac{1}{3}e^{3x} + Ce^{-2x}")
+        step4 = MathTex(r"y = \\frac{1}{3}e^x + Ce^{-2x}")
         
         # Arrange equations
         VGroup(
@@ -875,6 +942,7 @@ class MainScene(Scene):
 
 def generate_3d_surface_code():
     return '''from manim import *
+import numpy as np
 
 class MainScene(ThreeDScene):
     def construct(self):
@@ -911,6 +979,7 @@ class MainScene(ThreeDScene):
 
 def generate_sphere_code():
     return '''from manim import *
+import numpy as np
 
 class MainScene(ThreeDScene):
     def construct(self):
@@ -957,6 +1026,7 @@ def generate_manim_code(concept):
 def generate_basic_visualization_code():
     """Generate code for basic visualization."""
     return '''from manim import *
+import numpy as np
 
 class MainScene(Scene):
     def construct(self):
@@ -1027,6 +1097,11 @@ def generate():
             
         concept = sanitize_input(concept)
         
+        # Determine render quality
+        quality_requested = request.json.get('quality', RENDER_QUALITY_DEFAULT).lower()
+        if quality_requested not in {'low', 'medium', 'high'}:
+            quality_requested = RENDER_QUALITY_DEFAULT
+        
         # Generate unique filename
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         random_str = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz', k=6))
@@ -1037,13 +1112,26 @@ def generate():
         os.makedirs(temp_dir, exist_ok=True)
         
         try:
-            # Get appropriate template code
-            try:
-                manim_code = select_template(concept.lower())
-            except Exception as template_error:
-                logger.error(f'Template selection error: {str(template_error)}')
-                # Fallback to basic visualization if template selection fails
-                manim_code = generate_basic_visualization_code()
+            # Check if this is a LaTeX expression
+            used_ai = False
+            
+            # Get appropriate template or generate code
+            if is_likely_latex(concept):
+                manim_code = generate_latex_scene_code(concept)
+            else:
+                # Try to match with a template first
+                try:
+                    manim_code = select_template(concept.lower())
+                except Exception as template_error:
+                    logger.error(f'Template selection error: {str(template_error)}')
+                    # Try AI generation if templates fail
+                    ai_code = generate_ai_manim_code(concept)
+                    if ai_code:
+                        manim_code = ai_code
+                        used_ai = True
+                    else:
+                        # Fallback to basic visualization if both fail
+                        manim_code = generate_basic_visualization_code()
             
             if not manim_code:
                 return jsonify({'error': 'Failed to generate code template'}), 500
@@ -1057,12 +1145,15 @@ def generate():
             media_dir = os.path.join(temp_dir, 'media')
             os.makedirs(media_dir, exist_ok=True)
             
+            # Determine manim quality flag
+            quality_flag = {'low': '-ql', 'medium': '-qm', 'high': '-qh'}[quality_requested]
+            
             # Run manim command with error handling
             output_file = os.path.join(app.static_folder, 'videos', f'{filename}.mp4')
             command = [
                 'manim',
                 'render',
-                '-qm',  # medium quality
+                quality_flag,
                 '--format', 'mp4',
                 '--media_dir', media_dir,
                 code_file,
@@ -1109,7 +1200,9 @@ def generate():
                 return jsonify({
                     'success': True,
                     'video_url': url_for('static', filename=f'videos/{filename}.mp4'),
-                    'code': manim_code
+                    'code': manim_code,
+                    'used_ai': used_ai,
+                    'render_quality': quality_requested
                 })
                 
             except subprocess.TimeoutExpired:
