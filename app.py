@@ -1181,6 +1181,7 @@ def generate():
                 possible_paths = [
                     os.path.join(media_dir, 'videos', 'scene', '1080p60', 'MainScene.mp4'),
                     os.path.join(media_dir, 'videos', 'scene', '720p30', 'MainScene.mp4'),
+                    os.path.join(media_dir, 'videos', 'scene', '480p15', 'MainScene.mp4'),  # low-quality default in manim 0.17
                     os.path.join(media_dir, 'videos', 'MainScene.mp4'),
                     os.path.join(temp_dir, 'MainScene.mp4')
                 ]
@@ -1192,8 +1193,21 @@ def generate():
                         video_found = True
                         break
                 
+                # Fallback: walk media_dir recursively to locate the file
                 if not video_found:
-                    logger.error(f'Video not found in any of these locations: {possible_paths}')
+                    for root, _dirs, files in os.walk(media_dir):
+                        if 'MainScene.mp4' in files:
+                            try:
+                                shutil.move(os.path.join(root, 'MainScene.mp4'), output_file)
+                                video_found = True
+                                break
+                            except Exception as move_err:
+                                logger.error(f'Error moving located video: {move_err}')
+                                # if move fails, continue searching
+                                continue
+                
+                if not video_found:
+                    logger.error(f'Video not found in any of these locations or recursively under media_dir: {possible_paths}')
                     return jsonify({'error': 'Generated video file not found'}), 500
                 
                 # Return success response
