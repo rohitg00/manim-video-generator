@@ -1,8 +1,6 @@
 # Docker Compose for Manim Video Generator (Motia Edition)
 # For local development and single-instance production
 
-version: '3.8'
-
 services:
   manim-generator:
     build:
