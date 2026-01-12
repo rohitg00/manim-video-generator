@@ -1,59 +1,32 @@
-# Environment variables
-.env
-.env.*
-!.env.example
+# Dependencies
+node_modules/
+.claude/
+.cursor/
+node_modules/
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-build/
-develop-eggs/
+
+# Build output
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-animations/
-# Dockerfile
+.motia/
 
-# Manim
-media/
-*.mp4
+# Environment
+.env
+.env.local
 
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
+# Generated files
+public/videos/*.mp4
 
-# OS
+# Logs
+*.log
+
+# OS files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 
-# Local virtual envs
-.venv/
-venv/
+# IDE
+.vscode/
+.idea/
 
-# Temp rendering and scratch
-/tmp/
+# Temp files
 tmp/
-
-# Generated videos
-static/videos/
+*.tmp

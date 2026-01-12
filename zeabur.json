@@ -1,0 +1,63 @@
+{
+  "name": "manim-video-generator",
+  "description": "Motia-powered Manim video generator with AI code generation and Redis for horizontal scaling",
+  "version": "1.0.0",
+  "services": {
+    "app": {
+      "type": "service",
+      "dockerfile": "Dockerfile",
+      "buildCommand": "npm run build",
+      "startCommand": "npm run start",
+      "port": 3000,
+      "healthCheck": {
+        "path": "/health",
+        "interval": 30,
+        "timeout": 10,
+        "retries": 3
+      },
+      "env": [
+        {
+          "key": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "key": "USE_REDIS",
+          "value": "true"
+        },
+        {
+          "key": "REDIS_URL",
+          "value": "redis://redis:6379",
+          "description": "Redis connection URL for state management"
+        },
+        {
+          "key": "OPENAI_API_KEY",
+          "description": "OpenAI API key for AI code generation",
+          "required": true
+        },
+        {
+          "key": "OPENAI_MODEL",
+          "value": "gpt-4.1-nano",
+          "description": "OpenAI model to use (gpt-4.1-nano recommended for speed)"
+        }
+      ],
+      "resources": {
+        "cpu": "2",
+        "memory": "4Gi",
+        "disk": "10Gi"
+      }
+    },
+    "redis": {
+      "type": "redis",
+      "version": "7",
+      "persistence": true,
+      "resources": {
+        "cpu": "0.5",
+        "memory": "512Mi"
+      }
+    }
+  },
+  "dependencies": {
+    "app": ["redis"]
+  },
+  "regions": ["auto"]
+}
