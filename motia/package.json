@@ -1,0 +1,26 @@
+{
+  "name": "manim-video-generator-motia",
+  "version": "1.0.0",
+  "description": "Manim Video Generator built with Motia - event-driven workflow architecture",
+  "type": "module",
+  "scripts": {
+    "postinstall": "motia install",
+    "dev": "motia dev",
+    "start": "motia start",
+    "build": "motia build",
+    "generate-types": "motia generate-types"
+  },
+  "dependencies": {
+    "openai": "^4.50.0",
+    "uuid": "^10.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
