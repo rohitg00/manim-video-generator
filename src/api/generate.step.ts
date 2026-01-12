@@ -13,7 +13,8 @@ import { ValidationError } from '../errors/validation.error'
 // Request body schema
 const bodySchema = z.object({
   concept: z.string().min(1, 'Concept is required'),
-  quality: z.enum(['low', 'medium', 'high']).optional().default('low')
+  quality: z.enum(['low', 'medium', 'high']).optional().default('low'),
+  forceRefresh: z.boolean().optional().default(false)
 })
 
 // Response schemas
@@ -43,7 +44,7 @@ export const config: ApiRouteConfig = {
 
 export const handler: Handlers['GenerateApi'] = async (req, { emit, logger }) => {
   // Validate body with Zod schema
-  const { concept, quality } = bodySchema.parse(req.body)
+  const { concept, quality, forceRefresh } = bodySchema.parse(req.body)
 
   // Sanitize input
   const sanitizedConcept = concept.trim().replace(/\s+/g, ' ')
@@ -58,7 +59,8 @@ export const handler: Handlers['GenerateApi'] = async (req, { emit, logger }) =>
   logger.info('Received animation request', {
     jobId,
     concept: sanitizedConcept,
-    quality
+    quality,
+    forceRefresh
   })
 
   // Emit event to start processing pipeline
@@ -68,6 +70,7 @@ export const handler: Handlers['GenerateApi'] = async (req, { emit, logger }) =>
       jobId,
       concept: sanitizedConcept,
       quality,
+      forceRefresh,
       timestamp: new Date().toISOString()
     }
   })

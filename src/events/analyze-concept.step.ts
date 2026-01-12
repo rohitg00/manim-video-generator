@@ -10,7 +10,8 @@ import {
   selectTemplate,
   generateLatexSceneCode,
   templateMappings,
-  calculateMatchScore
+  calculateMatchScore,
+  TEMPLATE_MATCH_THRESHOLD
 } from '../services/manim-templates'
 
 // Input schema
@@ -25,7 +26,7 @@ export const config: EventConfig = {
   type: 'event',
   name: 'AnalyzeConcept',
   description: 'Analyze concept and determine generation strategy',
-  subscribes: ['animation.requested'],
+  subscribes: ['cache.miss'],
   emits: ['concept.analyzed'],
   input: inputSchema as any
 }
@@ -64,23 +65,28 @@ export const handler: Handlers['AnalyzeConcept'] = async (input, { emit, logger 
       jobId,
       bestTemplate,
       bestScore: bestScore.toFixed(3),
-      threshold: '0.500',
-      willUseTemplate: bestScore > 0.5,
+      threshold: TEMPLATE_MATCH_THRESHOLD.toFixed(3),
+      willUseTemplate: bestScore > TEMPLATE_MATCH_THRESHOLD,
       topScores: Object.entries(scores)
         .sort(([, a], [, b]) => b - a)
         .slice(0, 3)
         .map(([name, score]) => `${name}: ${score.toFixed(3)}`)
     })
 
-    const templateCode = selectTemplate(concept)
+    const templateResult = selectTemplate(concept)
 
-    if (templateCode) {
-      logger.info('Matched template', { jobId, template: bestTemplate, confidence: bestScore.toFixed(3) })
+    if (templateResult) {
+      logger.info('Matched template', { jobId, template: templateResult.templateName, confidence: bestScore.toFixed(3) })
       analysisType = 'template'
-      manimCode = templateCode
+      manimCode = templateResult.code
     } else {
-      // Step 3: Need AI generation
-      logger.info('No template match, will use AI', { jobId, bestScore: bestScore.toFixed(3), reason: 'confidence below threshold (0.5)' })
+      // Step 3: Need AI generation - this is the preferred path for unique outputs
+      logger.info('No template match, will use AI for unique output', {
+        jobId,
+        bestScore: bestScore.toFixed(3),
+        threshold: TEMPLATE_MATCH_THRESHOLD.toFixed(3),
+        reason: `confidence ${bestScore.toFixed(3)} below threshold ${TEMPLATE_MATCH_THRESHOLD.toFixed(3)}`
+      })
       analysisType = 'ai'
       needsAI = true
     }
