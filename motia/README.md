@@ -174,12 +174,98 @@ The original Flask app handled everything synchronously. With Motia:
 4. **Observability** - Built-in tracing via Motia Workbench
 5. **Multi-Language** - Python steps can be added alongside TypeScript
 
+## Deployment
+
+### Docker (Local/Self-Hosted)
+
+```bash
+# Build and run with docker-compose
+docker-compose up -d
+
+# Or build manually
+docker build -t manim-generator-motia .
+docker run -p 3000:3000 \
+  -e OPENAI_API_KEY=your-key \
+  -v $(pwd)/public/videos:/app/public/videos \
+  manim-generator-motia
+```
+
+### Sevalla Deployment
+
+1. **Connect Repository**: Link your GitHub repo to Sevalla
+2. **Configure Build**:
+   - Build Command: `npm run build`
+   - Start Command: `motia start`
+   - Dockerfile Path: `motia/Dockerfile`
+3. **Set Environment Variables**:
+   - `OPENAI_API_KEY` - Your OpenAI API key
+   - `OPENAI_MODEL` - (optional) gpt-4o-mini
+   - `NODE_ENV` - production
+4. **Deploy**: Sevalla will build and deploy automatically
+
+### Frontend-Backend Connection
+
+The frontend (`public/index.html`) is served by Motia from the same origin as the API:
+
+- **Frontend**: Served at `/` (root)
+- **API Endpoints**: `/api/generate`, `/api/jobs/:jobId`
+- **Generated Videos**: `/videos/*.mp4`
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    Motia Server                      │
+│                  (port 3000)                        │
+│                                                     │
+│  ┌─────────────┐    ┌─────────────────────────────┐ │
+│  │   Express   │    │     Motia Steps             │ │
+│  │  Middleware │    │                             │ │
+│  │             │    │  /api/generate → GenerateApi │ │
+│  │  GET /      │    │  /api/jobs/*  → JobStatusApi │ │
+│  │  (index.html)    │                             │ │
+│  │             │    │  Events:                    │ │
+│  │  /videos/*  │    │  → AnalyzeConcept           │ │
+│  │  (static)   │    │  → GenerateCode             │ │
+│  │             │    │  → RenderVideo              │ │
+│  └─────────────┘    └─────────────────────────────┘ │
+└─────────────────────────────────────────────────────┘
+```
+
+### Multi-Instance Scaling
+
+For horizontal scaling, configure Redis adapter in `motia.config.ts`:
+
+```typescript
+import { config } from 'motia'
+
+export default config({
+  adapters: {
+    state: {
+      type: 'redis',
+      options: { host: 'redis', port: 6379 }
+    },
+    events: {
+      type: 'redis',
+      options: { host: 'redis', port: 6379 }
+    }
+  }
+})
+```
+
 ## Development
 
 View the workflow in Motia Workbench:
 ```bash
 npm run dev
 # Open http://localhost:3000/workbench
+```
+
+### Health Check
+
+The app exposes a health endpoint for container orchestration:
+
+```bash
+curl http://localhost:3000/health
+# {"status":"healthy","timestamp":"2024-..."}
 ```
 
 ## License
