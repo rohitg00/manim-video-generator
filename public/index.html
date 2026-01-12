@@ -135,6 +135,30 @@
                             <textarea id="concept" name="concept" rows="4" class="w-full px-4 py-3 bg-indigo-900 bg-opacity-50 border border-indigo-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="Example: Visualize the relationship between sine and cosine on the unit circle..."></textarea>
                         </div>
 
+                        <!-- Quality and Options Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Quality Selector -->
+                            <div>
+                                <label for="quality" class="block text-sm font-medium text-gray-300 mb-2">Video Quality</label>
+                                <select id="quality" name="quality" class="w-full px-4 py-3 bg-indigo-900 bg-opacity-50 border border-indigo-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                                    <option value="low">Low (480p) - Fastest</option>
+                                    <option value="medium">Medium (720p)</option>
+                                    <option value="high">High (1080p) - Slowest</option>
+                                </select>
+                            </div>
+
+                            <!-- Force Refresh Option -->
+                            <div class="flex items-end">
+                                <label class="flex items-center space-x-3 cursor-pointer p-3 bg-indigo-900 bg-opacity-30 rounded-lg hover:bg-opacity-50 transition-all w-full">
+                                    <input type="checkbox" id="forceRefresh" name="forceRefresh" class="w-5 h-5 rounded border-indigo-700 bg-indigo-900 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0">
+                                    <div>
+                                        <span class="text-sm font-medium text-gray-300">Force Fresh Generation</span>
+                                        <p class="text-xs text-gray-400">Skip cache, generate unique animation</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
                         <!-- Example Concepts -->
                         <div>
                             <label class="block text-sm font-medium text-gray-300 mb-2">Try These Examples</label>
@@ -315,6 +339,10 @@
             document.getElementById('loadingSubtext').textContent = 'Analyzing your concept...';
 
             try {
+                // Get quality and force refresh options
+                const quality = document.getElementById('quality').value;
+                const forceRefresh = document.getElementById('forceRefresh').checked;
+
                 // Submit generation request
                 const response = await fetch('/api/generate', {
                     method: 'POST',
@@ -323,7 +351,8 @@
                     },
                     body: JSON.stringify({
                         concept: concept,
-                        quality: 'low'
+                        quality: quality,
+                        forceRefresh: forceRefresh
                     })
                 });
 

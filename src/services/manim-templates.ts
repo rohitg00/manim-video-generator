@@ -168,29 +168,38 @@ export function calculateMatchScore(concept: string, keywords: string[]): number
 }
 
 /**
- * Select appropriate template based on concept keywords
- * Only returns a template if confidence is high (>0.5)
+ * Template match threshold - set high to prefer AI generation for unique outputs
+ * 0.75 requires very strong keyword match to use template
  */
-export function selectTemplate(concept: string): string | null {
+export const TEMPLATE_MATCH_THRESHOLD = 0.75;
+
+/**
+ * Select appropriate template based on concept keywords
+ * Only returns a template if confidence is very high (>0.75)
+ * This ensures most queries go to AI for unique animations
+ */
+export function selectTemplate(concept: string): { code: string; templateName: string } | null {
   const lowerConcept = concept.toLowerCase().trim();
 
   let bestMatch: (() => string) | null = null;
+  let bestTemplateName = '';
   let bestScore = 0;
 
-  for (const [, templateInfo] of Object.entries(templateMappings)) {
+  for (const [templateName, templateInfo] of Object.entries(templateMappings)) {
     const score = calculateMatchScore(lowerConcept, templateInfo.keywords);
 
     if (score > bestScore) {
       bestScore = score;
       bestMatch = templateInfo.generator;
+      bestTemplateName = templateName;
     }
   }
 
-  // Only use template if confidence is high (>50% match)
-  // This ensures complex/specific queries go to AI
-  if (bestMatch && bestScore > 0.5) {
+  // Only use template if confidence is very high (>75% match)
+  // This ensures complex/specific queries go to AI for unique outputs
+  if (bestMatch && bestScore > TEMPLATE_MATCH_THRESHOLD) {
     try {
-      return bestMatch();
+      return { code: bestMatch(), templateName: bestTemplateName };
     } catch (error) {
       console.error('Error generating template:', error);
       return null;
@@ -198,6 +207,25 @@ export function selectTemplate(concept: string): string | null {
   }
 
   return null;
+}
+
+/**
+ * Get template match info without generating code (for logging/debugging)
+ */
+export function getTemplateMatchInfo(concept: string): { bestTemplate: string; bestScore: number; threshold: number } {
+  const lowerConcept = concept.toLowerCase().trim();
+  let bestTemplate = '';
+  let bestScore = 0;
+
+  for (const [templateName, templateInfo] of Object.entries(templateMappings)) {
+    const score = calculateMatchScore(lowerConcept, templateInfo.keywords);
+    if (score > bestScore) {
+      bestScore = score;
+      bestTemplate = templateName;
+    }
+  }
+
+  return { bestTemplate, bestScore, threshold: TEMPLATE_MATCH_THRESHOLD };
 }
 
 // --- Template Generators ---
