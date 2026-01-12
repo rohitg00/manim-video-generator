@@ -1,6 +1,10 @@
-# Manim Video Generator - Motia Edition
+# Manim Video Generator - Motia Edition 🎬
 
 A **Manim animation generator** rebuilt with [Motia](https://motia.dev) - the event-driven backend framework. This version demonstrates how to structure a video generation pipeline using Motia's Step primitives.
+
+[![manim video generator](https://img.youtube.com/vi/rIltjjzxsGQ/0.jpg)](https://www.youtube.com/watch?v=rIltjjzxsGQ)
+
+**[Detailed Step-by-Step Guide available here](https://sevalla.com/blog/guide-to-building-an-ai-powered-mathematical-animation-generator)**
 
 ## Architecture
 
@@ -164,6 +168,37 @@ Response (completed):
 - Complex numbers
 - Differential equations
 
+## 🎥 Showcase
+
+Here are some examples of complex mathematical animations generated using our tool:
+
+### Complex Analysis Visualization
+<img src="static/gifs/complex_analysis.gif" width="800" alt="Complex Number Transformations">
+
+*This animation demonstrates complex number transformations, showing how functions map points in the complex plane. Watch as the visualization reveals the geometric interpretation of complex operations.*
+
+### 3D Calculus Concepts
+<img src="static/gifs/3d_calculus.gif" width="800" alt="3D Surface Integration">
+
+*A sophisticated 3D visualization showing multivariable calculus concepts. The animation illustrates surface integrals and vector fields in three-dimensional space, making abstract concepts tangible.*
+
+### Differential Equations
+<img src="static/gifs/differential_equations.gif" width="800" alt="Differential Equations">
+
+*This animation brings differential equations to life by visualizing solution curves and phase spaces. Watch how the system evolves over time, revealing the underlying mathematical patterns.*
+
+### Linear Algebra Transformations
+<img src="static/gifs/ComplexNumbersAnimation_ManimCE_v0.17.3.gif" width="800" alt="Linear Transformations">
+
+*Experience linear transformations in action! This visualization demonstrates how matrices transform space, showing concepts like eigenvectors, rotations, and scaling in an intuitive way.*
+
+These examples showcase the power of our tool in creating complex mathematical visualizations. Each animation is generated from a simple text description, demonstrating the capability to:
+- Render sophisticated 3D scenes with proper lighting and perspective
+- Create smooth transitions between mathematical concepts
+- Visualize abstract mathematical relationships
+- Handle multiple mathematical objects with precise timing
+- Generate publication-quality animations for educational purposes
+
 ## Why Motia?
 
 The original Flask app handled everything synchronously. With Motia:
@@ -213,14 +248,14 @@ The frontend (`public/index.html`) is served by Motia from the same origin as th
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                    Motia Server                      │
+│                    Motia Server                     │
 │                  (port 3000)                        │
 │                                                     │
 │  ┌─────────────┐    ┌─────────────────────────────┐ │
 │  │   Express   │    │     Motia Steps             │ │
 │  │  Middleware │    │                             │ │
-│  │             │    │  /api/generate → GenerateApi │ │
-│  │  GET /      │    │  /api/jobs/*  → JobStatusApi │ │
+│  │             │    │  /api/generate → GenerateApi│ │
+│  │  GET /      │    │  /api/jobs/*  → JobStatusApi│ │
 │  │  (index.html)    │                             │ │
 │  │             │    │  Events:                    │ │
 │  │  /videos/*  │    │  → AnalyzeConcept           │ │
@@ -268,6 +303,23 @@ curl http://localhost:3000/health
 # {"status":"healthy","timestamp":"2024-..."}
 ```
 
+## 🤝 Credits
+
+- Created by [Rohit Ghumare](https://github.com/rohitg00)
+- Powered by [Manim Community](https://www.manim.community/)
+- Special thanks to:
+  - [3Blue1Brown](https://www.3blue1brown.com/) for creating Manim
+  - [Sevalla](https://sevalla.com/) for deployment and support
+  - [Manim Community](https://www.manim.community/) for their excellent documentation and support
+  - [Motia](https://motia.dev) for the event-driven framework
+
+## 🔗 Links
+
+- [Manim Documentation](https://docs.manim.community/)
+- [3Blue1Brown's Manim](https://3b1b.github.io/manim/)
+- [Motia Documentation](https://motia.dev)
+- [OpenAI API](https://openai.com/api/)
+
 ## License
 
-MIT
+MIT License - See [LICENSE](LICENSE) for details.
