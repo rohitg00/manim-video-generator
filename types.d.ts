@@ -14,8 +14,11 @@ declare module 'motia' {
   interface Handlers {
     'StoreResult': EventHandler<unknown, never>
     'RenderVideo': EventHandler<unknown, { topic: 'video.rendered'; data: unknown } | { topic: 'video.failed'; data: unknown }>
+    'HandleCacheHit': EventHandler<unknown, never>
     'GenerateCode': EventHandler<unknown, { topic: 'code.generated'; data: unknown }>
+    'CheckCache': EventHandler<unknown, { topic: 'cache.hit'; data: unknown } | { topic: 'cache.miss'; data: unknown }>
     'AnalyzeConcept': EventHandler<unknown, { topic: 'concept.analyzed'; data: unknown }>
+    'RefineAnimation': ApiRouteHandler<Record<string, unknown>, unknown, { topic: 'animation.requested'; data: unknown }>
     'JobStatusApi': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, unknown> | ApiResponse<400, unknown>, never>
     'HealthCheck': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, unknown>, never>
     'GenerateApi': ApiRouteHandler<unknown, ApiResponse<202, unknown> | ApiResponse<400, unknown>, { topic: 'animation.requested'; data: unknown }>

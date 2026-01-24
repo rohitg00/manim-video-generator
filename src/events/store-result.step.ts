@@ -18,7 +18,11 @@ const videoRenderedSchema = z.object({
   generationType: z.string(),
   quality: z.string(),
   videoUrl: z.string(),
-  videoPath: z.string()
+  videoPath: z.string(),
+  // NLU metadata (optional)
+  skill: z.string().optional(),
+  style: z.string().optional(),
+  intent: z.string().optional()
 })
 
 const videoFailedSchema = z.object({
@@ -52,13 +56,19 @@ export const handler: Handlers['StoreResult'] = async (input, { logger, state })
         manimCode: data.manimCode,
         usedAI: data.usedAI,
         quality: data.quality,
-        generationType: data.generationType
+        generationType: data.generationType,
+        // NLU metadata
+        skill: data.skill,
+        style: data.style,
+        intent: data.intent
       }
     })
     logger.info('Stored successful result', {
       jobId: data.jobId,
       videoUrl: data.videoUrl,
-      generationType: data.generationType
+      generationType: data.generationType,
+      skill: data.skill,
+      style: data.style
     })
 
     // Cache the result for future reuse (if caching is enabled)

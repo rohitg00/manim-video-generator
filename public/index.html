@@ -135,8 +135,8 @@
                             <textarea id="concept" name="concept" rows="4" class="w-full px-4 py-3 bg-indigo-900 bg-opacity-50 border border-indigo-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="Example: Visualize the relationship between sine and cosine on the unit circle..."></textarea>
                         </div>
 
-                        <!-- Quality and Options Row -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Quality, Style and Options Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <!-- Quality Selector -->
                             <div>
                                 <label for="quality" class="block text-sm font-medium text-gray-300 mb-2">Video Quality</label>
@@ -147,13 +147,25 @@
                                 </select>
                             </div>
 
+                            <!-- Style Preset Selector -->
+                            <div>
+                                <label for="style" class="block text-sm font-medium text-gray-300 mb-2">Visual Style</label>
+                                <select id="style" name="style" class="w-full px-4 py-3 bg-indigo-900 bg-opacity-50 border border-indigo-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                                    <option value="3blue1brown">3Blue1Brown (Classic)</option>
+                                    <option value="minimalist">Minimalist (Clean)</option>
+                                    <option value="playful">Playful (Colorful)</option>
+                                    <option value="corporate">Corporate (Professional)</option>
+                                    <option value="neon">Neon (Vibrant)</option>
+                                </select>
+                            </div>
+
                             <!-- Force Refresh Option -->
                             <div class="flex items-end">
                                 <label class="flex items-center space-x-3 cursor-pointer p-3 bg-indigo-900 bg-opacity-30 rounded-lg hover:bg-opacity-50 transition-all w-full">
                                     <input type="checkbox" id="forceRefresh" name="forceRefresh" class="w-5 h-5 rounded border-indigo-700 bg-indigo-900 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0">
                                     <div>
                                         <span class="text-sm font-medium text-gray-300">Force Fresh Generation</span>
-                                        <p class="text-xs text-gray-400">Skip cache, generate unique animation</p>
+                                        <p class="text-xs text-gray-400">Skip cache, generate unique</p>
                                     </div>
                                 </label>
                             </div>
@@ -245,9 +257,71 @@
                         </div>
                     </div>
 
-                    <!-- Generation Info -->
+                    <!-- Generation Info with Skill Badge -->
                     <div id="generationInfo" class="glass-card rounded-xl p-4 text-sm text-gray-300">
-                        <span id="infoText"></span>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <span id="infoText"></span>
+                            <span id="skillBadge" class="hidden px-2 py-1 bg-purple-600 bg-opacity-50 rounded-full text-xs font-medium text-purple-200"></span>
+                            <span id="intentBadge" class="hidden px-2 py-1 bg-blue-600 bg-opacity-50 rounded-full text-xs font-medium text-blue-200"></span>
+                            <span id="styleBadge" class="hidden px-2 py-1 bg-pink-600 bg-opacity-50 rounded-full text-xs font-medium text-pink-200"></span>
+                        </div>
+                    </div>
+
+                    <!-- Refinement Section -->
+                    <div id="refinementSection" class="glass-card rounded-xl p-6 hidden">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            Refine Your Animation
+                        </h3>
+                        <p class="text-gray-400 text-sm mb-4">Use natural language to make changes to your generated animation.</p>
+
+                        <div class="space-y-4">
+                            <!-- Refinement Input -->
+                            <div class="flex gap-3">
+                                <input type="text" id="refinementInput"
+                                    placeholder="e.g., Make the colors warmer, slow down the transitions..."
+                                    class="flex-1 px-4 py-2 bg-indigo-900 bg-opacity-50 border border-indigo-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <button id="refineBtn" onclick="submitRefinement()"
+                                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white font-medium transition-all flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    Refine
+                                </button>
+                            </div>
+
+                            <!-- Quick Refinement Suggestions -->
+                            <div class="flex flex-wrap gap-2">
+                                <span class="text-xs text-gray-400">Quick suggestions:</span>
+                                <button onclick="setRefinement('Make the colors warmer')" class="px-2 py-1 text-xs bg-indigo-800 bg-opacity-50 hover:bg-opacity-75 rounded text-gray-300 transition-all">Warmer colors</button>
+                                <button onclick="setRefinement('Slow down the animations')" class="px-2 py-1 text-xs bg-indigo-800 bg-opacity-50 hover:bg-opacity-75 rounded text-gray-300 transition-all">Slower</button>
+                                <button onclick="setRefinement('Add a title at the beginning')" class="px-2 py-1 text-xs bg-indigo-800 bg-opacity-50 hover:bg-opacity-75 rounded text-gray-300 transition-all">Add title</button>
+                                <button onclick="setRefinement('Make it more playful with bouncy animations')" class="px-2 py-1 text-xs bg-indigo-800 bg-opacity-50 hover:bg-opacity-75 rounded text-gray-300 transition-all">Playful</button>
+                                <button onclick="setRefinement('Use a minimalist style')" class="px-2 py-1 text-xs bg-indigo-800 bg-opacity-50 hover:bg-opacity-75 rounded text-gray-300 transition-all">Minimalist</button>
+                                <button onclick="setRefinement('Add smooth transitions between sections')" class="px-2 py-1 text-xs bg-indigo-800 bg-opacity-50 hover:bg-opacity-75 rounded text-gray-300 transition-all">Smooth transitions</button>
+                            </div>
+
+                            <!-- Style Change Option -->
+                            <div class="flex items-center gap-4 pt-2 border-t border-indigo-700">
+                                <label class="flex items-center gap-2 text-sm text-gray-300">
+                                    <input type="checkbox" id="preserveElements" checked class="w-4 h-4 rounded border-indigo-700 bg-indigo-900 text-indigo-500">
+                                    Preserve existing elements
+                                </label>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-gray-400">Change style to:</span>
+                                    <select id="newStyle" class="px-2 py-1 text-sm bg-indigo-900 bg-opacity-50 border border-indigo-700 rounded text-white">
+                                        <option value="">Keep current</option>
+                                        <option value="3blue1brown">3Blue1Brown</option>
+                                        <option value="minimalist">Minimalist</option>
+                                        <option value="playful">Playful</option>
+                                        <option value="corporate">Corporate</option>
+                                        <option value="neon">Neon</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Download Section -->
@@ -261,12 +335,50 @@
                     </div>
                 </div>
 
-                <!-- Loading State -->
+                <!-- Loading State with Stage Progress -->
                 <div id="loading" class="hidden">
-                    <div class="flex flex-col items-center justify-center py-12">
-                        <div class="loading-spinner mb-4"></div>
-                        <p class="text-lg text-gray-300" id="loadingText">Generating your animation...</p>
-                        <p class="text-sm text-gray-400 mt-2" id="loadingSubtext">This may take a few moments</p>
+                    <div class="glass-card rounded-xl p-8">
+                        <div class="flex flex-col items-center justify-center">
+                            <div class="loading-spinner mb-4"></div>
+                            <p class="text-lg text-gray-300" id="loadingText">Generating your animation...</p>
+                            <p class="text-sm text-gray-400 mt-2" id="loadingSubtext">This may take a few moments</p>
+                        </div>
+
+                        <!-- Generation Pipeline Stages -->
+                        <div id="pipelineStages" class="mt-8 space-y-3">
+                            <div class="flex items-center gap-3" id="stage-nlu">
+                                <div class="w-6 h-6 rounded-full bg-indigo-900 flex items-center justify-center" id="stage-nlu-icon">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span class="text-sm text-gray-400" id="stage-nlu-text">NLU Classification</span>
+                            </div>
+                            <div class="flex items-center gap-3" id="stage-compose">
+                                <div class="w-6 h-6 rounded-full bg-indigo-900 flex items-center justify-center" id="stage-compose-icon">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span class="text-sm text-gray-400" id="stage-compose-text">Scene Composition</span>
+                            </div>
+                            <div class="flex items-center gap-3" id="stage-generate">
+                                <div class="w-6 h-6 rounded-full bg-indigo-900 flex items-center justify-center" id="stage-generate-icon">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span class="text-sm text-gray-400" id="stage-generate-text">Code Generation</span>
+                            </div>
+                            <div class="flex items-center gap-3" id="stage-render">
+                                <div class="w-6 h-6 rounded-full bg-indigo-900 flex items-center justify-center" id="stage-render-icon">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span class="text-sm text-gray-400" id="stage-render-text">Video Rendering</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -338,12 +450,16 @@
             document.getElementById('loadingText').textContent = 'Starting animation generation...';
             document.getElementById('loadingSubtext').textContent = 'Analyzing your concept...';
 
+            // Reset pipeline stages
+            resetPipelineStages();
+
             try {
-                // Get quality and force refresh options
+                // Get quality, style, and force refresh options
                 const quality = document.getElementById('quality').value;
+                const style = document.getElementById('style').value;
                 const forceRefresh = document.getElementById('forceRefresh').checked;
 
-                // Submit generation request
+                // Submit generation request with style
                 const response = await fetch('/api/generate', {
                     method: 'POST',
                     headers: {
@@ -352,7 +468,9 @@
                     body: JSON.stringify({
                         concept: concept,
                         quality: quality,
-                        forceRefresh: forceRefresh
+                        style: style,
+                        forceRefresh: forceRefresh,
+                        useNLU: true
                     })
                 });
 
@@ -387,6 +505,7 @@
 
                     if (data.status === 'completed') {
                         clearInterval(pollInterval);
+                        completeAllStages();
                         showResults(data);
                     } else if (data.status === 'failed') {
                         clearInterval(pollInterval);
@@ -408,31 +527,104 @@
             }, 1000);
         }
 
+        function resetPipelineStages() {
+            ['nlu', 'compose', 'generate', 'render'].forEach(stage => {
+                const icon = document.getElementById(`stage-${stage}-icon`);
+                const text = document.getElementById(`stage-${stage}-text`);
+                icon.innerHTML = '<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+                icon.classList.remove('bg-green-600', 'bg-indigo-600');
+                icon.classList.add('bg-indigo-900');
+                text.classList.remove('text-white', 'text-green-400');
+                text.classList.add('text-gray-400');
+            });
+        }
+
+        function setStageActive(stageName) {
+            const icon = document.getElementById(`stage-${stageName}-icon`);
+            const text = document.getElementById(`stage-${stageName}-text`);
+            icon.innerHTML = '<div class="loading-spinner" style="width:14px;height:14px;border-width:2px;"></div>';
+            icon.classList.remove('bg-indigo-900');
+            icon.classList.add('bg-indigo-600');
+            text.classList.remove('text-gray-400');
+            text.classList.add('text-white');
+        }
+
+        function setStageComplete(stageName) {
+            const icon = document.getElementById(`stage-${stageName}-icon`);
+            const text = document.getElementById(`stage-${stageName}-text`);
+            icon.innerHTML = '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
+            icon.classList.remove('bg-indigo-600', 'bg-indigo-900');
+            icon.classList.add('bg-green-600');
+            text.classList.remove('text-white');
+            text.classList.add('text-green-400');
+        }
+
+        function completeAllStages() {
+            ['nlu', 'compose', 'generate', 'render'].forEach(stage => setStageComplete(stage));
+        }
+
         function updateLoadingStatus(count) {
             const stages = [
-                { min: 0, max: 5, text: 'Analyzing concept...', sub: 'Detecting LaTeX and matching templates' },
-                { min: 5, max: 15, text: 'Generating Manim code...', sub: 'Creating animation script' },
-                { min: 15, max: 60, text: 'Rendering animation...', sub: 'This may take a minute' },
-                { min: 60, max: 120, text: 'Still rendering...', sub: 'Complex animations take longer' }
+                { min: 0, max: 3, text: 'Understanding your request...', sub: 'NLU classification & entity extraction', active: 'nlu' },
+                { min: 3, max: 8, text: 'Composing scene graph...', sub: 'Building animation structure', active: 'compose', complete: 'nlu' },
+                { min: 8, max: 20, text: 'Generating Manim code...', sub: 'Multi-stage prompt engineering', active: 'generate', complete: 'compose' },
+                { min: 20, max: 60, text: 'Rendering animation...', sub: 'This may take a minute', active: 'render', complete: 'generate' },
+                { min: 60, max: 120, text: 'Still rendering...', sub: 'Complex animations take longer', active: 'render' }
             ];
 
             const stage = stages.find(s => count >= s.min && count < s.max) || stages[stages.length - 1];
             document.getElementById('loadingText').textContent = stage.text;
             document.getElementById('loadingSubtext').textContent = stage.sub;
+
+            if (stage.complete) {
+                setStageComplete(stage.complete);
+            }
+            if (stage.active) {
+                setStageActive(stage.active);
+            }
         }
 
         function showResults(data) {
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('results').classList.remove('hidden');
+            document.getElementById('refinementSection').classList.remove('hidden');
 
             // Update UI with results
-            document.getElementById('generatedCode').textContent = data.code;
+            document.getElementById('generatedCode').textContent = data.code || data.manimCode || '# No code available';
             document.getElementById('animationPreview').src = data.video_url;
             document.getElementById('downloadVideo').href = data.video_url;
 
-            // Show generation info
-            const infoText = `Generated using ${data.generation_type}${data.used_ai ? ' (AI)' : ''} | Quality: ${data.render_quality}`;
+            // Show generation info with badges
+            const genType = data.generation_type || data.analysisType || 'unknown';
+            const infoText = `Generated using ${genType}${data.used_ai ? ' (AI)' : ''} | Quality: ${data.render_quality || data.quality || 'medium'}`;
             document.getElementById('infoText').textContent = infoText;
+
+            // Show skill badge
+            const skillBadge = document.getElementById('skillBadge');
+            if (data.skill) {
+                skillBadge.textContent = `Skill: ${data.skill}`;
+                skillBadge.classList.remove('hidden');
+            } else {
+                skillBadge.classList.add('hidden');
+            }
+
+            // Show intent badge
+            const intentBadge = document.getElementById('intentBadge');
+            if (data.intent) {
+                intentBadge.textContent = `Intent: ${data.intent}`;
+                intentBadge.classList.remove('hidden');
+            } else {
+                intentBadge.classList.add('hidden');
+            }
+
+            // Show style badge
+            const styleBadge = document.getElementById('styleBadge');
+            if (data.style) {
+                styleBadge.textContent = `Style: ${data.style}`;
+                styleBadge.classList.remove('hidden');
+            } else {
+                styleBadge.classList.add('hidden');
+            }
 
             // Highlight code
             Prism.highlightAll();
@@ -448,6 +640,74 @@
             document.getElementById('concept').value = text;
         }
 
+        function setRefinement(text) {
+            document.getElementById('refinementInput').value = text;
+        }
+
+        async function submitRefinement() {
+            const refinement = document.getElementById('refinementInput').value.trim();
+            if (!refinement) {
+                showError('Please enter a refinement instruction.');
+                return;
+            }
+
+            if (!currentJobId) {
+                showError('No animation to refine. Generate one first.');
+                return;
+            }
+
+            const preserveElements = document.getElementById('preserveElements').checked;
+            const newStyle = document.getElementById('newStyle').value || undefined;
+
+            // Disable refine button
+            const refineBtn = document.getElementById('refineBtn');
+            const originalHTML = refineBtn.innerHTML;
+            refineBtn.disabled = true;
+            refineBtn.innerHTML = '<div class="loading-spinner" style="width:16px;height:16px;border-width:2px;"></div> Refining...';
+
+            try {
+                const response = await fetch('/api/refine', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        jobId: currentJobId,
+                        refinement: refinement,
+                        preserveElements: preserveElements,
+                        newStyle: newStyle
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || data.message || 'Refinement failed');
+                }
+
+                // Show loading state for the new job
+                document.getElementById('loading').classList.remove('hidden');
+                document.getElementById('results').classList.add('hidden');
+                resetPipelineStages();
+
+                // Update job ID and start polling
+                currentJobId = data.newJobId;
+                document.getElementById('loadingText').textContent = 'Applying refinement...';
+                document.getElementById('loadingSubtext').textContent = `"${refinement.slice(0, 50)}${refinement.length > 50 ? '...' : ''}"`;
+
+                startPolling(currentJobId);
+
+                // Clear refinement input
+                document.getElementById('refinementInput').value = '';
+
+            } catch (error) {
+                showError(error.message || 'Failed to submit refinement.');
+            } finally {
+                refineBtn.disabled = false;
+                refineBtn.innerHTML = originalHTML;
+            }
+        }
+
         document.getElementById('copyCode').addEventListener('click', function() {
             const code = document.getElementById('generatedCode').textContent;
             navigator.clipboard.writeText(code).then(() => {
@@ -457,6 +717,13 @@
                     this.innerHTML = originalText;
                 }, 2000);
             });
+        });
+
+        // Allow pressing Enter in refinement input to submit
+        document.getElementById('refinementInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                submitRefinement();
+            }
         });
     </script>
 </body>

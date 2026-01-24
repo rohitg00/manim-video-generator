@@ -10,11 +10,13 @@ import type { ApiRouteConfig, Handlers } from 'motia'
 import { coreMiddleware } from '../middlewares/core.middleware'
 import { ValidationError } from '../errors/validation.error'
 
-// Request body schema
+// Request body schema with style support
 const bodySchema = z.object({
   concept: z.string().min(1, 'Concept is required'),
   quality: z.enum(['low', 'medium', 'high']).optional().default('low'),
-  forceRefresh: z.boolean().optional().default(false)
+  forceRefresh: z.boolean().optional().default(false),
+  style: z.enum(['3blue1brown', 'minimalist', 'playful', 'corporate', 'neon']).optional().default('3blue1brown'),
+  useNLU: z.boolean().optional().default(true)
 })
 
 // Response schemas
@@ -44,7 +46,7 @@ export const config: ApiRouteConfig = {
 
 export const handler: Handlers['GenerateApi'] = async (req, { emit, logger }) => {
   // Validate body with Zod schema
-  const { concept, quality, forceRefresh } = bodySchema.parse(req.body)
+  const { concept, quality, forceRefresh, style, useNLU } = bodySchema.parse(req.body)
 
   // Sanitize input
   const sanitizedConcept = concept.trim().replace(/\s+/g, ' ')
@@ -60,6 +62,8 @@ export const handler: Handlers['GenerateApi'] = async (req, { emit, logger }) =>
     jobId,
     concept: sanitizedConcept,
     quality,
+    style,
+    useNLU,
     forceRefresh
   })
 
@@ -70,12 +74,14 @@ export const handler: Handlers['GenerateApi'] = async (req, { emit, logger }) =>
       jobId,
       concept: sanitizedConcept,
       quality,
+      style,
+      useNLU,
       forceRefresh,
       timestamp: new Date().toISOString()
     }
   })
 
-  logger.info('Animation request emitted', { jobId })
+  logger.info('Animation request emitted', { jobId, style, useNLU })
 
   return {
     status: 202,

@@ -10,14 +10,18 @@ import * as path from 'path'
 import * as os from 'os'
 import type { EventConfig, Handlers } from 'motia'
 
-// Input schema
+// Input schema - includes NLU metadata
 const inputSchema = z.object({
   jobId: z.string(),
   concept: z.string(),
   quality: z.enum(['low', 'medium', 'high']),
   manimCode: z.string(),
   usedAI: z.boolean(),
-  generationType: z.string()
+  generationType: z.string(),
+  // NLU pipeline metadata (optional)
+  skill: z.string().optional(),
+  style: z.string().optional(),
+  intent: z.string().optional()
 })
 
 export const config: EventConfig = {
@@ -37,9 +41,9 @@ const QUALITY_FLAGS: Record<string, string> = {
 }
 
 export const handler: Handlers['RenderVideo'] = async (input, { emit, logger }) => {
-  const { jobId, concept, quality, manimCode, usedAI, generationType } = inputSchema.parse(input)
+  const { jobId, concept, quality, manimCode, usedAI, generationType, skill, style, intent } = inputSchema.parse(input)
 
-  logger.info('Rendering video for job', { jobId, quality })
+  logger.info('Rendering video for job', { jobId, quality, skill, style })
 
   // Create temporary directory for this job
   const tempDir = path.join(os.tmpdir(), `manim-${jobId}`)
@@ -120,7 +124,7 @@ export const handler: Handlers['RenderVideo'] = async (input, { emit, logger }) 
       videoUrl: `/videos/${outputFilename}`
     })
 
-    // Emit success event
+    // Emit success event with NLU metadata
     await emit({
       topic: 'video.rendered',
       data: {
@@ -131,7 +135,11 @@ export const handler: Handlers['RenderVideo'] = async (input, { emit, logger }) 
         generationType,
         quality,
         videoUrl: `/videos/${outputFilename}`,
-        videoPath: outputPath
+        videoPath: outputPath,
+        // NLU metadata
+        skill,
+        style,
+        intent
       }
     })
 

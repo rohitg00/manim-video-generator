@@ -8,14 +8,18 @@ import type { EventConfig, Handlers } from 'motia'
 import { generateAIManimCode } from '../services/openai-client'
 import { generateBasicVisualizationCode } from '../services/manim-templates'
 
-// Input schema
+// Input schema - includes 'nlu' for NLU pipeline generated code
 const inputSchema = z.object({
   jobId: z.string(),
   concept: z.string(),
   quality: z.enum(['low', 'medium', 'high']),
-  analysisType: z.enum(['latex', 'template', 'ai', 'fallback']),
+  analysisType: z.enum(['latex', 'template', 'ai', 'fallback', 'nlu']),
   manimCode: z.string().nullable(),
-  needsAI: z.boolean()
+  needsAI: z.boolean(),
+  // NLU pipeline metadata (optional)
+  skill: z.string().optional(),
+  style: z.string().optional(),
+  intent: z.string().optional()
 })
 
 export const config: EventConfig = {
@@ -28,9 +32,9 @@ export const config: EventConfig = {
 }
 
 export const handler: Handlers['GenerateCode'] = async (input, { emit, logger }) => {
-  const { jobId, concept, quality, analysisType, manimCode, needsAI } = inputSchema.parse(input)
+  const { jobId, concept, quality, analysisType, manimCode, needsAI, skill, style, intent } = inputSchema.parse(input)
 
-  logger.info('Generating code for job', { jobId, needsAI, analysisType })
+  logger.info('Generating code for job', { jobId, needsAI, analysisType, skill, style })
 
   let finalCode: string
   let usedAI = false
@@ -89,7 +93,11 @@ export const handler: Handlers['GenerateCode'] = async (input, { emit, logger })
       quality,
       manimCode: finalCode,
       usedAI,
-      generationType
+      generationType,
+      // Pass through NLU metadata
+      skill,
+      style,
+      intent
     }
   })
 

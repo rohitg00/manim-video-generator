@@ -13,6 +13,10 @@ interface CompletedResult {
     usedAI: boolean
     quality: string
     generationType: string
+    // NLU metadata (optional)
+    skill?: string
+    style?: string
+    intent?: string
   }
 }
 

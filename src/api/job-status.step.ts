@@ -18,7 +18,7 @@ const responseSchema = {
       status: z.literal('processing'),
       message: z.string()
     }),
-    // Completed response
+    // Completed response with NLU metadata
     z.object({
       jobId: z.string(),
       status: z.literal('completed'),
@@ -27,7 +27,11 @@ const responseSchema = {
       code: z.string(),
       used_ai: z.boolean(),
       render_quality: z.string(),
-      generation_type: z.string()
+      generation_type: z.string(),
+      // NLU metadata (optional)
+      skill: z.string().optional(),
+      style: z.string().optional(),
+      intent: z.string().optional()
     }),
     // Failed response
     z.object({
@@ -79,7 +83,7 @@ export const handler: Handlers['JobStatusApi'] = async (req, { logger, state }) 
   }
 
   if (result.status === 'completed') {
-    logger.info('Job completed successfully', { jobId })
+    logger.info('Job completed successfully', { jobId, skill: result.data.skill, style: result.data.style })
     return {
       status: 200,
       body: {
@@ -90,7 +94,11 @@ export const handler: Handlers['JobStatusApi'] = async (req, { logger, state }) 
         code: result.data.manimCode,
         used_ai: result.data.usedAI,
         render_quality: result.data.quality,
-        generation_type: result.data.generationType
+        generation_type: result.data.generationType,
+        // NLU metadata
+        skill: result.data.skill,
+        style: result.data.style,
+        intent: result.data.intent
       }
     }
   }

@@ -45,20 +45,32 @@ This application uses Motia's event-driven architecture to process animation req
 ## Project Structure
 
 ```
-motia/
 ├── src/
 │   ├── api/
 │   │   ├── generate.step.ts      # POST /api/generate
-│   │   └── job-status.step.ts    # GET /api/jobs/:jobId
+│   │   ├── job-status.step.ts    # GET /api/jobs/:jobId
+│   │   └── refine.step.ts        # POST /api/refine
 │   ├── events/
 │   │   ├── analyze-concept.step.ts
 │   │   ├── generate-code.step.ts
 │   │   ├── render-video.step.ts
 │   │   └── store-result.step.ts
-│   └── services/
-│       ├── job-store.ts          # In-memory result storage
-│       ├── manim-templates.ts    # Pre-built templates
-│       └── openai-client.ts      # AI code generation
+│   ├── services/
+│   │   ├── job-store.ts          # State management
+│   │   ├── manim-templates.ts    # Pre-built templates
+│   │   ├── openai-client.ts      # AI code generation
+│   │   ├── nlu-classifier.ts     # Intent classification
+│   │   ├── scene-composer.ts     # Scene graph builder
+│   │   ├── prompt-engine.ts      # Multi-stage prompting
+│   │   └── style-presets.ts      # Visual style configs
+│   └── types/
+│       ├── nlu.types.ts          # NLU type definitions
+│       └── scene.types.ts        # Scene graph types
+├── skills/                       # Animation skills
+│   ├── math-visualizer/
+│   ├── animation-composer/
+│   ├── visual-storyteller/
+│   └── motion-graphics/
 ├── public/
 │   ├── index.html                # Frontend UI
 │   └── videos/                   # Generated videos
@@ -154,6 +166,55 @@ Response (completed):
   "used_ai": false,
   "render_quality": "low"
 }
+```
+
+## Natural Language to Animation
+
+The generator uses an NLU (Natural Language Understanding) pipeline to transform natural language into animations:
+
+```
+User Input → NLU Classifier → Scene Composer → Prompt Engine → Manim Code → Video
+```
+
+### Skills System
+
+Install animation skills for enhanced generation:
+
+```bash
+# Using SkillKit (recommended)
+npx skillkit install rohitg00/manim-video-generator/skills
+
+# Using skills.sh
+npx skills add rohitg00/manim-video-generator/
+```
+
+Available skills:
+- **math-visualizer** - Equations, proofs, graphs, geometric concepts
+- **animation-composer** - Multi-act scenes, transitions, camera control
+- **visual-storyteller** - Step-by-step explanations, narratives
+- **motion-graphics** - Kinetic typography, logos, title sequences
+
+### Style Presets
+
+Choose a visual style when generating:
+
+```json
+{
+  "prompt": "Visualize the Pythagorean theorem",
+  "style": "3blue1brown"
+}
+```
+
+Available styles: `3blue1brown`, `minimalist`, `playful`, `corporate`, `neon`
+
+### Refinement API
+
+Iteratively refine generated animations:
+
+```bash
+curl -X POST http://localhost:3000/api/refine \
+  -H "Content-Type: application/json" \
+  -d '{"jobId": "uuid", "refinement": "make colors warmer", "preserveElements": true}'
 ```
 
 ## Supported Topics
