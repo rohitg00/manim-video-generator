@@ -24,6 +24,7 @@ export class GoogleProvider extends BaseLLMProvider {
   ];
 
   private client: GoogleGenerativeAI | null = null;
+  private hasApiKey: boolean = false;
 
   constructor(config: ProviderConfig = {}) {
     super(config);
@@ -31,6 +32,7 @@ export class GoogleProvider extends BaseLLMProvider {
       const apiKey = config.apiKey || process.env.GOOGLE_API_KEY;
       if (apiKey) {
         this.client = new GoogleGenerativeAI(apiKey);
+        this.hasApiKey = true;
       }
     } catch (error) {
       console.warn('Google AI client initialization failed:', error);
@@ -38,7 +40,7 @@ export class GoogleProvider extends BaseLLMProvider {
   }
 
   isAvailable(): boolean {
-    return this.client !== null && !!process.env.GOOGLE_API_KEY;
+    return this.client !== null && this.hasApiKey;
   }
 
   async generateCode(prompt: string, context: GenerationContext): Promise<CodeResult> {
@@ -91,13 +93,20 @@ User input: ${text}`;
     const content = response.text();
 
     const jsonMatch = content.match(/\{[\s\S]*\}/);
-    const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+    let parsed: Record<string, unknown> = {};
+    if (jsonMatch) {
+      try {
+        parsed = JSON.parse(jsonMatch[0]);
+      } catch {
+        console.warn('Failed to parse analyzeIntent JSON response');
+      }
+    }
 
     return {
-      intent: parsed.intent || 'CREATE_SCENE',
-      confidence: parsed.confidence || 0.75,
-      entities: parsed.entities || { objects: [], actions: [], colors: [], mathExpressions: [] },
-      suggestedSkill: parsed.suggestedSkill,
+      intent: (parsed.intent as string) || 'CREATE_SCENE',
+      confidence: (parsed.confidence as number) || 0.75,
+      entities: (parsed.entities as IntentResult['entities']) || { objects: [], actions: [], colors: [], mathExpressions: [] },
+      suggestedSkill: parsed.suggestedSkill as string | undefined,
     };
   }
 
@@ -122,14 +131,21 @@ Concept: ${concept}`;
     const content = response.text();
 
     const jsonMatch = content.match(/\{[\s\S]*\}/);
-    const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+    let parsed: Record<string, unknown> = {};
+    if (jsonMatch) {
+      try {
+        parsed = JSON.parse(jsonMatch[0]);
+      } catch {
+        console.warn('Failed to parse enrichMath JSON response');
+      }
+    }
 
     return {
-      equations: parsed.equations || [],
-      theorems: parsed.theorems || [],
-      definitions: parsed.definitions || [],
-      proofSteps: parsed.proofSteps,
-      latex: parsed.latex || [],
+      equations: (parsed.equations as string[]) || [],
+      theorems: (parsed.theorems as string[]) || [],
+      definitions: (parsed.definitions as string[]) || [],
+      proofSteps: parsed.proofSteps as string[] | undefined,
+      latex: (parsed.latex as string[]) || [],
     };
   }
 
