@@ -9,8 +9,21 @@ interface FallbackConfig {
   onFallback?: (from: ProviderName, to: ProviderName, error: Error) => void;
 }
 
+const validProviders: ProviderName[] = ['openai', 'anthropic', 'google', 'deepseek'];
+
+function getDefaultChain(): ProviderName[] {
+  const envChain = process.env.FALLBACK_CHAIN;
+  if (envChain) {
+    const chain = envChain.split(',').filter(p => validProviders.includes(p as ProviderName)) as ProviderName[];
+    if (chain.length > 0) {
+      return chain;
+    }
+  }
+  return ['anthropic', 'openai', 'google', 'deepseek'];
+}
+
 const DEFAULT_FALLBACK_CONFIG: FallbackConfig = {
-  chain: (process.env.FALLBACK_CHAIN?.split(',') as ProviderName[]) || ['anthropic', 'openai', 'google', 'deepseek'],
+  chain: getDefaultChain(),
   maxRetries: 3,
   retryDelayMs: 1000,
 };
