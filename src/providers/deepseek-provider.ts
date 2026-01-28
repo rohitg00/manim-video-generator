@@ -23,12 +23,14 @@ export class DeepSeekProvider extends BaseLLMProvider {
   ];
 
   private client: OpenAI | null = null;
+  private hasApiKey: boolean = false;
 
   constructor(config: ProviderConfig = {}) {
     super(config);
     try {
       const apiKey = config.apiKey || process.env.DEEPSEEK_API_KEY;
       if (apiKey) {
+        this.hasApiKey = true;
         this.client = new OpenAI({
           apiKey,
           baseURL: config.baseUrl || DEFAULT_BASE_URL,
@@ -40,7 +42,7 @@ export class DeepSeekProvider extends BaseLLMProvider {
   }
 
   isAvailable(): boolean {
-    return this.client !== null && !!process.env.DEEPSEEK_API_KEY;
+    return this.client !== null && this.hasApiKey;
   }
 
   async generateCode(prompt: string, context: GenerationContext): Promise<CodeResult> {
@@ -99,13 +101,20 @@ Return ONLY the Python code, no explanations.`;
 
     const content = response.choices[0]?.message?.content || '{}';
     const jsonMatch = content.match(/\{[\s\S]*\}/);
-    const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+    let parsed: Record<string, unknown> = {};
+    if (jsonMatch) {
+      try {
+        parsed = JSON.parse(jsonMatch[0]);
+      } catch {
+        console.warn('Failed to parse JSON from DeepSeek response');
+      }
+    }
 
     return {
-      intent: parsed.intent || 'CREATE_SCENE',
-      confidence: parsed.confidence || 0.75,
-      entities: parsed.entities || { objects: [], actions: [], colors: [], mathExpressions: [] },
-      suggestedSkill: parsed.suggestedSkill,
+      intent: (parsed.intent as string) || 'CREATE_SCENE',
+      confidence: (parsed.confidence as number) || 0.75,
+      entities: (parsed.entities as IntentResult['entities']) || { objects: [], actions: [], colors: [], mathExpressions: [] },
+      suggestedSkill: parsed.suggestedSkill as string | undefined,
     };
   }
 
@@ -133,14 +142,21 @@ Return ONLY the Python code, no explanations.`;
 
     const content = response.choices[0]?.message?.content || '{}';
     const jsonMatch = content.match(/\{[\s\S]*\}/);
-    const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+    let parsed: Record<string, unknown> = {};
+    if (jsonMatch) {
+      try {
+        parsed = JSON.parse(jsonMatch[0]);
+      } catch {
+        console.warn('Failed to parse JSON from DeepSeek response');
+      }
+    }
 
     return {
-      equations: parsed.equations || [],
-      theorems: parsed.theorems || [],
-      definitions: parsed.definitions || [],
-      proofSteps: parsed.proofSteps,
-      latex: parsed.latex || [],
+      equations: (parsed.equations as string[]) || [],
+      theorems: (parsed.theorems as string[]) || [],
+      definitions: (parsed.definitions as string[]) || [],
+      proofSteps: parsed.proofSteps as string[] | undefined,
+      latex: (parsed.latex as string[]) || [],
     };
   }
 
