@@ -17,10 +17,6 @@ export default defineConfig({
         target: 'http://localhost:3002',
         changeOrigin: true,
       },
-      '/videos': {
-        target: 'http://localhost:3002',
-        changeOrigin: true,
-      },
     },
   },
   build: {

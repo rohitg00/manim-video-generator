@@ -14,6 +14,7 @@ const STYLES: {
   id: Style
   name: string
   description: string
+  emoji: string
   background: string
   primaryColor: string
   accentColor: string
@@ -22,7 +23,8 @@ const STYLES: {
   {
     id: '3blue1brown',
     name: '3Blue1Brown',
-    description: 'Classic mathematical animation style',
+    description: 'Classic math style',
+    emoji: '📐',
     background: '#1c1c1c',
     primaryColor: '#3b82f6',
     accentColor: '#22c55e',
@@ -31,7 +33,8 @@ const STYLES: {
   {
     id: 'minimalist',
     name: 'Minimalist',
-    description: 'Clean and simple white background',
+    description: 'Clean & simple',
+    emoji: '✨',
     background: '#f5f5f5',
     primaryColor: '#1f2937',
     accentColor: '#3b82f6',
@@ -40,7 +43,8 @@ const STYLES: {
   {
     id: 'playful',
     name: 'Playful',
-    description: 'Colorful and fun for education',
+    description: 'Fun for learning',
+    emoji: '🎨',
     background: '#fef3c7',
     primaryColor: '#f97316',
     accentColor: '#ec4899',
@@ -49,7 +53,8 @@ const STYLES: {
   {
     id: 'corporate',
     name: 'Corporate',
-    description: 'Professional business style',
+    description: 'Business ready',
+    emoji: '💼',
     background: '#1e293b',
     primaryColor: '#0ea5e9',
     accentColor: '#a3e635',
@@ -58,7 +63,8 @@ const STYLES: {
   {
     id: 'neon',
     name: 'Neon',
-    description: 'Dark with glowing elements',
+    description: 'Glowing vibes',
+    emoji: '🌟',
     background: '#0a0a0a',
     primaryColor: '#f0abfc',
     accentColor: '#22d3ee',
@@ -68,66 +74,93 @@ const STYLES: {
 
 export function StyleGallery({ selected, onSelect, disabled }: StyleGalleryProps) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {STYLES.map((style) => (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {STYLES.map((style, index) => (
         <motion.button
           key={style.id}
           onClick={() => onSelect(style.id)}
           disabled={disabled}
-          whileHover={{ scale: disabled ? 1 : 1.02 }}
+          whileHover={{ scale: disabled ? 1 : 1.02, rotate: disabled ? 0 : (index % 2 === 0 ? 1 : -1) }}
           whileTap={{ scale: disabled ? 1 : 0.98 }}
           className={clsx(
-            'relative overflow-hidden rounded-xl p-4 text-left transition-all',
-            'border-2',
+            'relative overflow-hidden p-4 text-left transition-all border-2',
             selected === style.id
-              ? 'border-primary ring-2 ring-primary/20'
-              : 'border-transparent hover:border-muted-foreground/20',
+              ? 'border-[#ff4d4d] shadow-hard-accent'
+              : 'border-pencil shadow-hard hover:shadow-hard-lg',
             disabled && 'cursor-not-allowed opacity-50'
           )}
           style={{
+            borderRadius: index % 2 === 0
+              ? '255px 15px 225px 15px / 15px 225px 15px 255px'
+              : '15px 255px 15px 225px / 225px 15px 255px 15px',
             background: style.background,
             color: style.textColor,
+            transform: `rotate(${index % 2 === 0 ? -0.5 : 0.5}deg)`,
           }}
         >
           {selected === style.id && (
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="absolute right-2 top-2 rounded-full bg-primary p-1"
+              initial={{ scale: 0, rotate: -10 }}
+              animate={{ scale: 1, rotate: 0 }}
+              className="absolute right-2 top-2 bg-[#ff4d4d] border-2 border-white p-1"
+              style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
             >
-              <Check className="h-3 w-3 text-primary-foreground" />
+              <Check className="h-3 w-3 text-white" strokeWidth={3} />
             </motion.div>
           )}
 
-          <div className="mb-3 flex gap-2">
-            <div
-              className="h-5 w-5 rounded-full"
-              style={{ background: style.primaryColor }}
-            />
-            <div
-              className="h-5 w-5 rounded-full"
-              style={{ background: style.accentColor }}
-            />
+          <div className="mb-3 flex items-center gap-2">
+            <span className="text-xl">{style.emoji}</span>
+            <div className="flex gap-1.5">
+              <div
+                className="h-4 w-4 border border-current/30"
+                style={{
+                  background: style.primaryColor,
+                  borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px'
+                }}
+              />
+              <div
+                className="h-4 w-4 border border-current/30"
+                style={{
+                  background: style.accentColor,
+                  borderRadius: '15px 255px 15px 225px / 225px 15px 255px 15px'
+                }}
+              />
+            </div>
           </div>
 
-          <h3 className="text-sm font-semibold">{style.name}</h3>
-          <p className="mt-1 text-xs opacity-70">{style.description}</p>
+          <h3
+            className="text-base font-bold"
+            style={{ fontFamily: "'Kalam', cursive" }}
+          >
+            {style.name}
+          </h3>
+          <p
+            className="mt-0.5 text-sm opacity-70"
+            style={{ fontFamily: "'Patrick Hand', cursive" }}
+          >
+            {style.description}
+          </p>
 
-          <div className="mt-3 h-8 overflow-hidden rounded-md opacity-50">
+          {/* Mini preview */}
+          <div
+            className="mt-3 h-8 overflow-hidden opacity-60 border border-current/20"
+            style={{ borderRadius: '95px 8px 100px 8px / 8px 100px 8px 95px' }}
+          >
             <svg width="100%" height="100%" viewBox="0 0 100 32">
               <motion.circle
                 cx="20"
                 cy="16"
-                r="6"
+                r="5"
                 fill={style.primaryColor}
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               />
               <motion.rect
-                x="40"
-                y="10"
-                width="12"
-                height="12"
+                x="42"
+                y="11"
+                width="10"
+                height="10"
                 fill={style.accentColor}
                 animate={{ rotate: 360 }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
@@ -135,7 +168,7 @@ export function StyleGallery({ selected, onSelect, disabled }: StyleGalleryProps
               <motion.path
                 d="M70 22 L76 10 L82 22 Z"
                 fill={style.primaryColor}
-                animate={{ y: [0, -4, 0] }}
+                animate={{ y: [0, -3, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               />
             </svg>
