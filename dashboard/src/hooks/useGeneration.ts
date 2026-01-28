@@ -69,11 +69,11 @@ export function useGeneration() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
+        const errorData = await response.json() as { error?: string }
         throw new Error(errorData.error || 'Failed to start generation')
       }
 
-      const { jobId } = await response.json()
+      const { jobId } = await response.json() as { jobId: string }
 
       const maxAttempts = params.quality === 'high' ? 180 : 90
       const pollInterval = 2000
@@ -94,12 +94,20 @@ export function useGeneration() {
           throw new Error('Failed to check job status')
         }
 
-        const result = await statusResponse.json()
+        const result = await statusResponse.json() as {
+          status: string
+          video_url?: string
+          code?: string
+          skill?: string
+          style?: string
+          intent?: string
+          error?: string
+        }
 
         if (result.status === 'completed') {
           setStatus('completed')
-          setVideoUrl(result.video_url)
-          setCode(result.code)
+          setVideoUrl(result.video_url || null)
+          setCode(result.code || null)
           setMetadata({
             skill: result.skill,
             style: result.style,
@@ -108,8 +116,8 @@ export function useGeneration() {
           setProgress(1)
           return {
             jobId,
-            videoUrl: result.video_url,
-            code: result.code,
+            videoUrl: result.video_url || '',
+            code: result.code || '',
             metadata: {
               skill: result.skill,
               style: result.style,
