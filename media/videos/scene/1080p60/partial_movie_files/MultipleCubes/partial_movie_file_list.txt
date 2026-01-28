@@ -1,5 +1,0 @@
-# This file is used internally by FFMPEG.
-file 'file:/Users/rohitghumare/CascadeProjects/manim-video-generator/media/videos/scene/1080p60/partial_movie_files/MultipleCubes/1945207224_4278575854_729892282.mp4'
-file 'file:/Users/rohitghumare/CascadeProjects/manim-video-generator/media/videos/scene/1080p60/partial_movie_files/MultipleCubes/3368197948_3028860576_246237571.mp4'
-file 'file:/Users/rohitghumare/CascadeProjects/manim-video-generator/media/videos/scene/1080p60/partial_movie_files/MultipleCubes/2653442739_2229070684_771688967.mp4'
-file 'file:/Users/rohitghumare/CascadeProjects/manim-video-generator/media/videos/scene/1080p60/partial_movie_files/MultipleCubes/2654479245_667837741_3521355956.mp4'

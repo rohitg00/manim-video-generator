@@ -1,6 +1,0 @@
-# This file is used internally by FFMPEG.
-file 'file:/Users/rohitghumare/CascadeProjects/manim-video-generator/media/videos/torus_morph_test/480p15/partial_movie_files/MainScene/2437686563_1763400525_729892282.mp4'
-file 'file:/Users/rohitghumare/CascadeProjects/manim-video-generator/media/videos/torus_morph_test/480p15/partial_movie_files/MainScene/3710979190_1505099804_2988505678.mp4'
-file 'file:/Users/rohitghumare/CascadeProjects/manim-video-generator/media/videos/torus_morph_test/480p15/partial_movie_files/MainScene/2726979908_4159002677_2558949765.mp4'
-file 'file:/Users/rohitghumare/CascadeProjects/manim-video-generator/media/videos/torus_morph_test/480p15/partial_movie_files/MainScene/2565067226_2523006683_2558949765.mp4'
-file 'file:/Users/rohitghumare/CascadeProjects/manim-video-generator/media/videos/torus_morph_test/480p15/partial_movie_files/MainScene/344791108_4268215521_995149228.mp4'
