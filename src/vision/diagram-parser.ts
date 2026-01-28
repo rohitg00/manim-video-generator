@@ -10,7 +10,7 @@ import type {
   ImageUploadedEvent,
 } from './types';
 import type { Intent, StylePreset } from '../types/nlu.types';
-import { getVisionProvider, isVisionAvailable } from './providers';
+import { getVisionProvider, isVisionAvailable } from './providers/index';
 import { extractText, isOCRAvailable } from './ocr-engine';
 import {
   sortShapesByPosition,

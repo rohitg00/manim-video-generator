@@ -1,32 +1,23 @@
 import { useState, useRef, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Lightbulb, Image, X } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Image, X, Pencil } from 'lucide-react'
 
 interface PromptEditorProps {
   value: string
   onChange: (value: string) => void
   onSubmit: () => void
   disabled?: boolean
+  placeholder?: string
 }
-
-const EXAMPLE_PROMPTS = [
-  'Show how the Pythagorean theorem works with a visual proof',
-  'Visualize the derivative of sin(x) as a rate of change',
-  'Demonstrate bubble sort algorithm step by step',
-  'Animate a sine wave transforming into a cosine wave',
-  'Show how vectors add together in 2D space',
-  'Explain the chain rule with animated derivatives',
-  'Visualize matrix multiplication step by step',
-  'Show the relationship between e^(ix) and the unit circle',
-]
 
 export function PromptEditor({
   value,
   onChange,
   onSubmit,
   disabled = false,
+  placeholder = "What should we draw today? ✏️",
 }: PromptEditorProps) {
-  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [isFocused, setIsFocused] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -66,100 +57,117 @@ export function PromptEditor({
 
   return (
     <div className="space-y-3">
-      <div className="relative">
+      <div
+        className={`relative transition-all duration-300 bg-white border-2 ${
+          isFocused
+            ? 'border-[#2d5da1] shadow-hard-blue'
+            : 'border-pencil shadow-hard'
+        }`}
+        style={{ borderRadius: '15px 255px 15px 225px / 225px 15px 255px 15px' }}
+      >
+        {/* Notebook lines background */}
+        <div className="absolute inset-0 bg-[repeating-linear-gradient(transparent,transparent_31px,#e5e0d8_31px,#e5e0d8_32px)] pointer-events-none" style={{ borderRadius: '15px 255px 15px 225px / 225px 15px 255px 15px' }} />
+
         <textarea
           ref={textareaRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           disabled={disabled}
-          placeholder="Describe what you want to animate...
-
-Examples:
-- Show how the Pythagorean theorem works
-- Visualize the derivative of x^2
-- Demonstrate sorting algorithms"
-          className="w-full resize-none rounded-lg border bg-background p-4 pr-12 text-base leading-relaxed transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
+          placeholder={placeholder}
+          className="relative w-full resize-none bg-transparent p-4 text-pencil placeholder:text-pencil/40 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 text-lg"
+          style={{ fontFamily: "'Patrick Hand', cursive" }}
           rows={4}
         />
 
-        <div className="absolute bottom-3 right-3 text-xs text-muted-foreground">
-          {value.length}/2000
+        <div className="absolute bottom-3 right-3 flex items-center gap-2">
+          <span
+            className="text-xs text-pencil/50 px-2 py-1 bg-[#fff9c4] border border-pencil"
+            style={{ borderRadius: '95px 8px 100px 8px / 8px 100px 8px 95px', fontFamily: "'Patrick Hand', cursive" }}
+          >
+            {value.length}/2000
+          </span>
+        </div>
+
+        <AnimatePresence>
+          {isFocused && value.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, rotate: -5 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              exit={{ opacity: 0, scale: 0.9, rotate: 5 }}
+              className="absolute bottom-3 right-24"
+            >
+              <button
+                onClick={onSubmit}
+                disabled={disabled || !value.trim()}
+                className="p-2 bg-[#ff4d4d] border-2 border-pencil text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#e64545] transition-colors shadow-hard-sm"
+                style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
+              >
+                <Pencil className="h-4 w-4" strokeWidth={2.5} />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <AnimatePresence>
+        {imagePreview && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, rotate: -2 }}
+            animate={{ opacity: 1, scale: 1, rotate: 1 }}
+            exit={{ opacity: 0, scale: 0.95, rotate: 2 }}
+            className="relative inline-block"
+          >
+            <img
+              src={imagePreview}
+              alt="Uploaded diagram"
+              className="h-20 border-2 border-pencil object-cover shadow-hard"
+              style={{ borderRadius: '15px 255px 15px 225px / 225px 15px 255px 15px' }}
+            />
+            <button
+              onClick={removeImage}
+              className="absolute -right-2 -top-2 bg-[#ff4d4d] border-2 border-pencil p-1 text-white hover:bg-[#e64545] transition-colors shadow-hard-sm"
+              style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
+            >
+              <X className="h-3 w-3" strokeWidth={3} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <label
+            className="flex cursor-pointer items-center gap-2 bg-white border-2 border-pencil px-3 py-2 text-sm font-bold text-pencil hover:bg-[#e5e0d8] transition-colors shadow-hard-sm"
+            style={{ borderRadius: '95px 8px 100px 8px / 8px 100px 8px 95px', fontFamily: "'Patrick Hand', cursive" }}
+          >
+            <Image className="h-4 w-4" strokeWidth={2.5} />
+            📎 Upload Diagram
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+          </label>
+        </div>
+
+        <div className="flex items-center text-sm text-pencil/60" style={{ fontFamily: "'Patrick Hand', cursive" }}>
+          <span
+            className="px-2 py-1 bg-[#fff9c4] border border-pencil mr-1"
+            style={{ borderRadius: '4px' }}
+          >⌘</span>
+          <span className="mr-1">+</span>
+          <span
+            className="px-2 py-1 bg-[#fff9c4] border border-pencil mr-2"
+            style={{ borderRadius: '4px' }}
+          >↵</span>
+          <span>to draw!</span>
         </div>
       </div>
-
-      {imagePreview && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="relative inline-block"
-        >
-          <img
-            src={imagePreview}
-            alt="Uploaded diagram"
-            className="h-24 rounded-lg border object-cover"
-          />
-          <button
-            onClick={removeImage}
-            className="absolute -right-2 -top-2 rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90"
-          >
-            <X className="h-3 w-3" />
-          </button>
-        </motion.div>
-      )}
-
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={() => setShowSuggestions(!showSuggestions)}
-          className="flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm font-medium transition-colors hover:bg-muted/80"
-        >
-          <Lightbulb className="h-4 w-4" />
-          Examples
-        </button>
-
-        <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm font-medium transition-colors hover:bg-muted/80">
-          <Image className="h-4 w-4" />
-          Upload Diagram
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="hidden"
-          />
-        </label>
-
-        <span className="ml-auto flex items-center text-xs text-muted-foreground">
-          Press <kbd className="mx-1 rounded bg-muted px-1.5 py-0.5 font-mono">Cmd</kbd> +{' '}
-          <kbd className="mx-1 rounded bg-muted px-1.5 py-0.5 font-mono">Enter</kbd> to generate
-        </span>
-      </div>
-
-      {showSuggestions && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-lg border bg-card p-4"
-        >
-          <h3 className="mb-3 text-sm font-medium text-muted-foreground">
-            Example Prompts
-          </h3>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {EXAMPLE_PROMPTS.map((example, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  onChange(example)
-                  setShowSuggestions(false)
-                }}
-                className="rounded-lg bg-muted/50 p-3 text-left text-sm transition-colors hover:bg-muted"
-              >
-                {example}
-              </button>
-            ))}
-          </div>
-        </motion.div>
-      )}
     </div>
   )
 }

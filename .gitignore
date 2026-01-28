@@ -2,7 +2,7 @@
 node_modules/
 .claude/
 .cursor/
-node_modules/
+.agents/
 
 
 # Build output
@@ -30,3 +30,4 @@ Thumbs.db
 # Temp files
 tmp/
 *.tmp
+dashboard/public/videos/*.mp4

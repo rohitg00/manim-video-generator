@@ -359,34 +359,46 @@ import numpy as np
 
 class MainScene(ThreeDScene):
     def construct(self):
-        # Configure the scene
+        # Configure the camera
         self.set_camera_orientation(phi=75 * DEGREES, theta=30 * DEGREES)
 
-        # Create axes
-        axes = ThreeDAxes()
-
-        # Create surface
-        def func(x, y):
-            return np.sin(x) * np.cos(y)
-
-        surface = Surface(
-            lambda u, v: axes.c2p(u, v, func(u, v)),
-            u_range=[-3, 3],
-            v_range=[-3, 3],
-            resolution=32,
-            checkerboard_colors=[BLUE_D, BLUE_E]
+        # Create 3D axes
+        axes = ThreeDAxes(
+            x_range=[-3, 3, 1],
+            y_range=[-3, 3, 1],
+            z_range=[-1.5, 1.5, 0.5],
+            x_length=6,
+            y_length=6,
+            z_length=3
         )
 
-        # Add custom labels
-        x_label = Text("x").next_to(axes.x_axis.get_end(), RIGHT)
-        y_label = Text("y").next_to(axes.y_axis.get_end(), UP)
-        z_label = Text("z").next_to(axes.z_axis.get_end(), OUT)
+        # Create surface z = sin(x) * cos(y)
+        surface = Surface(
+            lambda u, v: axes.c2p(u, v, np.sin(u) * np.cos(v)),
+            u_range=[-3, 3],
+            v_range=[-3, 3],
+            resolution=(24, 24),
+            fill_opacity=0.8,
+            checkerboard_colors=[BLUE_D, BLUE_E],
+            stroke_width=0.5,
+            stroke_color=WHITE
+        )
 
-        # Create animations
-        self.begin_ambient_camera_rotation(rate=0.2)
-        self.play(Create(axes), Write(x_label), Write(y_label), Write(z_label))
-        self.play(Create(surface))
-        self.wait(2)
+        # Title
+        title = Text("z = sin(x) cos(y)", font_size=32)
+        title.to_corner(UL)
+        self.add_fixed_in_frame_mobjects(title)
+
+        # Animations
+        self.play(Create(axes), run_time=1.5)
+        self.wait(0.3)
+        self.play(Create(surface), run_time=2)
+        self.wait(0.5)
+        self.play(Write(title))
+
+        # Rotate camera to show the surface from different angles
+        self.begin_ambient_camera_rotation(rate=0.15)
+        self.wait(4)
         self.stop_ambient_camera_rotation()
         self.wait()
 `;
@@ -638,50 +650,60 @@ import numpy as np
 
 class MainScene(Scene):
     def construct(self):
+        # Title
+        title = Text("First Order Linear ODE", font_size=36).to_edge(UP)
+        self.play(Write(title))
+
         # Create differential equation
-        eq = MathTex(r"\\frac{dy}{dx} + 2y = e^x")
+        eq = MathTex(r"\\frac{dy}{dx} + 2y = e^x", font_size=36)
+        eq.next_to(title, DOWN, buff=0.5)
 
         # Solution steps
-        step1 = MathTex(r"y = e^{-2x}\\int e^x \\cdot e^{2x} dx")
-        step2 = MathTex(r"y = e^{-2x}\\int e^{3x} dx")
-        step3 = MathTex(r"y = e^{-2x} \\cdot \\frac{1}{3}e^{3x} + Ce^{-2x}")
-        step4 = MathTex(r"y = \\frac{1}{3}e^x + Ce^{-2x}")
+        step1 = MathTex(r"\\text{Integrating factor: } \\mu = e^{2x}", font_size=32)
+        step2 = MathTex(r"y = e^{-2x} \\int e^{3x} \\, dx", font_size=32)
+        step3 = MathTex(r"y = \\frac{1}{3}e^x + Ce^{-2x}", font_size=32, color=YELLOW)
 
-        # Arrange equations
-        VGroup(
-            eq, step1, step2, step3, step4
-        ).arrange(DOWN, buff=0.5)
-
-        # Create graph
-        axes = Axes(
-            x_range=[-2, 2],
-            y_range=[-2, 2],
-            axis_config={"include_tip": True}
-        )
-
-        # Plot particular solution (C=0)
-        graph = axes.plot(
-            lambda x: (1/3)*np.exp(x),
-            color=YELLOW
-        )
+        # Arrange equations vertically
+        steps = VGroup(step1, step2, step3).arrange(DOWN, buff=0.4)
+        steps.next_to(eq, DOWN, buff=0.5)
 
         # Animations
         self.play(Write(eq))
-        self.wait()
+        self.wait(0.5)
         self.play(Write(step1))
-        self.wait()
+        self.wait(0.5)
         self.play(Write(step2))
-        self.wait()
+        self.wait(0.5)
         self.play(Write(step3))
         self.wait()
-        self.play(Write(step4))
-        self.wait()
+
+        # Transition to graph
+        self.play(FadeOut(VGroup(title, eq, steps)))
+        self.wait(0.3)
+
+        # Create graph
+        axes = Axes(
+            x_range=[-2, 2, 0.5],
+            y_range=[-1, 4, 1],
+            x_length=8,
+            y_length=5,
+            axis_config={"include_tip": True}
+        )
+        x_label = Text("x", font_size=24).next_to(axes.x_axis.get_end(), RIGHT)
+        y_label = Text("y", font_size=24).next_to(axes.y_axis.get_end(), UP)
+
+        # Plot particular solution (C=0)
+        graph = axes.plot(
+            lambda x: (1/3) * np.exp(x),
+            x_range=[-2, 1.2],
+            color=YELLOW
+        )
+        graph_label = MathTex(r"y = \\frac{1}{3}e^x", color=YELLOW, font_size=28)
+        graph_label.next_to(graph.get_end(), RIGHT)
 
         # Show graph
-        self.play(
-            FadeOut(VGroup(eq, step1, step2, step3, step4))
-        )
-        self.play(Create(axes), Create(graph))
+        self.play(Create(axes), Write(x_label), Write(y_label))
+        self.play(Create(graph), Write(graph_label))
         self.wait()
 `;
 }
@@ -699,8 +721,8 @@ class MainScene(Scene):
         )
 
         # Add custom labels
-        x_label = Text("x").next_to(plane.x_axis.get_end(), RIGHT)
-        y_label = Text("y").next_to(plane.y_axis.get_end(), UP)
+        x_label = Text("x", font_size=24).next_to(plane.x_axis.get_end(), RIGHT)
+        y_label = Text("y", font_size=24).next_to(plane.y_axis.get_end(), UP)
 
         # Create unit circle
         circle = Circle(radius=1, color=BLUE)
@@ -711,42 +733,46 @@ class MainScene(Scene):
         # Create dot that moves around circle
         dot = always_redraw(
             lambda: Dot(
-                circle.point_at_angle(theta.get_value()),
+                point=circle.point_at_angle(theta.get_value()),
                 color=YELLOW
             )
         )
 
         # Create lines to show sine and cosine
-        x_line = always_redraw(
+        sin_line = always_redraw(
             lambda: Line(
-                start=[circle.point_at_angle(theta.get_value())[0], 0, 0],
-                end=circle.point_at_angle(theta.get_value()),
-                color=GREEN
-            )
-        )
-
-        y_line = always_redraw(
-            lambda: Line(
-                start=[0, 0, 0],
+                start=circle.point_at_angle(theta.get_value()),
                 end=[circle.point_at_angle(theta.get_value())[0], 0, 0],
-                color=RED
+                color=GREEN,
+                stroke_width=3
             )
         )
 
-        # Create labels
-        sin_label = Text("sin(theta)").next_to(x_line).set_color(GREEN)
-        cos_label = Text("cos(theta)").next_to(y_line).set_color(RED)
+        cos_line = always_redraw(
+            lambda: Line(
+                start=ORIGIN,
+                end=[circle.point_at_angle(theta.get_value())[0], 0, 0],
+                color=RED,
+                stroke_width=3
+            )
+        )
+
+        # Create static labels
+        title = Text("Unit Circle Trigonometry", font_size=32).to_edge(UP)
+        sin_label = MathTex(r"\\sin(\\theta)", color=GREEN, font_size=28).to_corner(UR)
+        cos_label = MathTex(r"\\cos(\\theta)", color=RED, font_size=28).next_to(sin_label, DOWN)
 
         # Add everything to scene
+        self.play(Write(title))
         self.play(Create(plane), Write(x_label), Write(y_label))
         self.play(Create(circle))
-        self.play(Create(dot))
-        self.play(Create(x_line), Create(y_line))
+        self.wait(0.5)
+        self.add(dot, sin_line, cos_line)
         self.play(Write(sin_label), Write(cos_label))
 
-        # Animate angle
+        # Animate angle around the circle
         self.play(
-            theta.animate.set_value(2*PI),
+            theta.animate.set_value(2 * PI),
             run_time=4,
             rate_func=linear
         )

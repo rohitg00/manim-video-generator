@@ -20,7 +20,7 @@ export const config: ApiRouteConfig = {
   name: 'HealthCheck',
   description: 'Health check endpoint for monitoring',
   method: 'GET',
-  path: '/health',
+  path: '/api/health',
   responseSchema: responseSchema as any,
   emits: []
 }

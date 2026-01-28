@@ -8,7 +8,7 @@ export {
   openaiVisionProvider,
   anthropicVisionProvider,
   googleVisionProvider,
-} from './providers';
+} from './providers/index';
 
 export {
   parseDiagram,

@@ -1,44 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Patrick+Hand&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 39 33% 98%;
+    --foreground: 0 0% 18%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --card-foreground: 0 0% 18%;
+    --primary: 0 100% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 213 54% 40%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 36 20% 90%;
+    --muted-foreground: 0 0% 18%;
+    --accent: 0 100% 65%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 213 54% 40%;
+    --radius: 0.5rem;
   }
 }
 
@@ -46,75 +31,229 @@
   * {
     @apply border-border;
   }
-
   body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Patrick Hand', cursive;
+    background-color: #fdfbf7;
+    background-image: radial-gradient(#e5e0d8 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Kalam', cursive;
+    font-weight: 700;
   }
 }
 
-/* Custom scrollbar */
+@layer utilities {
+  .wobbly {
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  }
+
+  .wobbly-md {
+    border-radius: 15px 255px 15px 225px / 225px 15px 255px 15px;
+  }
+
+  .wobbly-sm {
+    border-radius: 95px 8px 100px 8px / 8px 100px 8px 95px;
+  }
+
+  .wobbly-alt {
+    border-radius: 225px 15px 255px 15px / 15px 255px 15px 225px;
+  }
+
+  .shadow-hard {
+    box-shadow: 4px 4px 0px 0px #2d2d2d;
+  }
+
+  .shadow-hard-lg {
+    box-shadow: 8px 8px 0px 0px #2d2d2d;
+  }
+
+  .shadow-hard-sm {
+    box-shadow: 2px 2px 0px 0px #2d2d2d;
+  }
+
+  .shadow-hard-accent {
+    box-shadow: 4px 4px 0px 0px #ff4d4d;
+  }
+
+  .shadow-hard-blue {
+    box-shadow: 4px 4px 0px 0px #2d5da1;
+  }
+
+  .text-hand {
+    font-family: 'Patrick Hand', cursive;
+  }
+
+  .text-marker {
+    font-family: 'Kalam', cursive;
+  }
+
+  .tape {
+    position: relative;
+  }
+
+  .tape::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-2deg);
+    width: 60px;
+    height: 20px;
+    background: rgba(200, 200, 200, 0.5);
+    border-radius: 2px;
+  }
+
+  .tack {
+    position: relative;
+  }
+
+  .tack::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    background: #ff4d4d;
+    border-radius: 50%;
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  }
+
+  .underline-squiggle {
+    text-decoration: underline;
+    text-decoration-style: wavy;
+    text-underline-offset: 4px;
+  }
+}
+
+@layer components {
+  .btn-sketchy {
+    padding: 0.75rem 1.5rem;
+    border: 3px solid #2d2d2d;
+    background-color: white;
+    color: #2d2d2d;
+    font-weight: bold;
+    box-shadow: 4px 4px 0px 0px #2d2d2d;
+    transition: all 100ms;
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.125rem;
+  }
+
+  .btn-sketchy:hover {
+    background-color: #ff4d4d;
+    color: white;
+    box-shadow: 2px 2px 0px 0px #2d2d2d;
+    transform: translate(2px, 2px);
+  }
+
+  .btn-sketchy:active {
+    box-shadow: none;
+    transform: translate(4px, 4px);
+  }
+
+  .btn-sketchy-secondary {
+    padding: 0.75rem 1.5rem;
+    border: 3px solid #2d2d2d;
+    background-color: #e5e0d8;
+    color: #2d2d2d;
+    font-weight: bold;
+    box-shadow: 4px 4px 0px 0px #2d2d2d;
+    transition: all 100ms;
+    border-radius: 15px 255px 15px 225px / 225px 15px 255px 15px;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.125rem;
+  }
+
+  .btn-sketchy-secondary:hover {
+    background-color: #2d5da1;
+    color: white;
+    box-shadow: 2px 2px 0px 0px #2d2d2d;
+    transform: translate(2px, 2px);
+  }
+
+  .card-sketchy {
+    background-color: white;
+    border: 2px solid #2d2d2d;
+    padding: 1.5rem;
+    border-radius: 15px 255px 15px 225px / 225px 15px 255px 15px;
+    box-shadow: 3px 3px 0px 0px rgba(45, 45, 45, 0.15);
+  }
+
+  .card-postit {
+    background-color: #fff9c4;
+    border: 2px solid #2d2d2d;
+    padding: 1.5rem;
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+    box-shadow: 4px 4px 0px 0px rgba(45, 45, 45, 0.1);
+    transform: rotate(-1deg);
+  }
+
+  .input-sketchy {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #2d2d2d;
+    background-color: white;
+    border-radius: 95px 8px 100px 8px / 8px 100px 8px 95px;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.125rem;
+  }
+
+  .input-sketchy::placeholder {
+    color: rgba(45, 45, 45, 0.4);
+  }
+}
+
+@keyframes jiggle {
+  0%, 100% { transform: rotate(-1deg); }
+  50% { transform: rotate(1deg); }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-jiggle {
+  animation: jiggle 0.3s ease-in-out;
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 3s ease-in-out infinite;
+}
+
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-muted;
+  background: #fdfbf7;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/30 rounded-full;
+  background: #e5e0d8;
+  border: 2px solid #2d2d2d;
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-muted-foreground/50;
+  background: #d5d0c8;
 }
 
-/* Code block styling */
-pre, code {
-  font-family: 'Fira Code', monospace;
+input, textarea, select {
+  font-family: 'Patrick Hand', cursive;
 }
 
-/* Animation classes */
-.animate-in {
-  animation: animateIn 0.3s ease-out forwards;
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #2d5da1 !important;
+  box-shadow: 0 0 0 3px rgba(45, 93, 161, 0.2);
 }
 
-@keyframes animateIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Video player styling */
-video {
-  border-radius: 8px;
-  max-width: 100%;
-}
-
-/* Loading states */
-.loading-shimmer {
-  background: linear-gradient(
-    90deg,
-    hsl(var(--muted)) 0%,
-    hsl(var(--muted-foreground) / 0.1) 50%,
-    hsl(var(--muted)) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+.video-container {
+  aspect-ratio: 16/9;
 }
