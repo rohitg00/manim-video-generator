@@ -60,16 +60,23 @@ export function addPrerequisite(
   }
 }
 
+function rebaseDepth(node: KnowledgeNode, depth: number): KnowledgeNode {
+  return {
+    ...node,
+    depth,
+    prerequisites: node.prerequisites.map((prereq) =>
+      rebaseDepth(prereq, depth + 1)
+    ),
+  }
+}
+
 function addPrerequisiteToNode(
   node: KnowledgeNode,
   parentId: string,
   prerequisite: KnowledgeNode
 ): KnowledgeNode {
   if (node.id === parentId) {
-    const newPrerequisite = {
-      ...prerequisite,
-      depth: node.depth + 1,
-    }
+    const newPrerequisite = rebaseDepth(prerequisite, node.depth + 1)
 
     return {
       ...node,
