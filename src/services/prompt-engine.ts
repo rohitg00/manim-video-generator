@@ -352,12 +352,15 @@ async function validateAndFix(code: string, sceneGraph: SceneGraph): Promise<Sta
     }
   }
 
-  // Fix 6: Replace deprecated methods
+  // Fix 6: Replace deprecated methods and invalid parameters
   fixedCode = fixedCode.replace(/ShowCreation\(/g, 'Create(')
   fixedCode = fixedCode.replace(/TextMobject\(/g, 'Text(')
   fixedCode = fixedCode.replace(/TexMobject\(/g, 'MathTex(')
   fixedCode = fixedCode.replace(/GrowFromCenter\(/g, 'Create(')
   fixedCode = fixedCode.replace(/arrange_submobjects\(/g, 'arrange(')
+  fixedCode = fixedCode.replace(/Square\s*\(\s*side\s*=/g, 'Square(side_length=')
+  fixedCode = fixedCode.replace(/\.next_to\s*\(([^)]*),\s*diagonal\s*=\s*[\d.]+\s*,?/g, '.next_to($1,')
+  fixedCode = fixedCode.replace(/\.next_to\s*\(([^)]*),\s*diagonal\s*=\s*[\d.]+\s*\)/g, '.next_to($1)')
 
   // Fix 7: Fix camera.frame in non-MovingCameraScene
   if (fixedCode.includes('self.camera.frame') && !fixedCode.includes('MovingCameraScene')) {

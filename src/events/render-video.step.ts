@@ -320,6 +320,16 @@ function parseManimError(stderr: string): { error: string; suggestion: string } 
       pattern: /has no attribute 'frame'/,
       error: 'camera.frame error',
       suggestion: 'self.camera.frame only works in MovingCameraScene, not Scene.'
+    },
+    {
+      pattern: /unexpected keyword argument 'side'/,
+      error: 'Invalid Square parameter',
+      suggestion: 'Use Square(side_length=X) not Square(side=X).'
+    },
+    {
+      pattern: /unexpected keyword argument 'diagonal'/,
+      error: 'Invalid next_to parameter',
+      suggestion: 'next_to() does not have a diagonal parameter. Use direction (UP, DOWN, LEFT, RIGHT) and buff.'
     }
   ]
 

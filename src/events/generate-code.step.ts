@@ -83,6 +83,13 @@ function sanitizeManimCode(code: string): string {
   // Remove buff from get_vertical_line/get_horizontal_line (not supported)
   sanitized = sanitized.replace(/(get_(?:vertical|horizontal)_line\([^)]*),\s*buff\s*=\s*[\d.]+/g, '$1')
 
+  // Fix Square(side=...) → Square(side_length=...)
+  sanitized = sanitized.replace(/Square\s*\(\s*side\s*=/g, 'Square(side_length=')
+
+  // Remove invalid 'diagonal' parameter from next_to() - not a valid Manim parameter
+  sanitized = sanitized.replace(/\.next_to\s*\(([^)]*),\s*diagonal\s*=\s*[\d.]+\s*,?/g, '.next_to($1,')
+  sanitized = sanitized.replace(/\.next_to\s*\(([^)]*),\s*diagonal\s*=\s*[\d.]+\s*\)/g, '.next_to($1)')
+
   // ═══════════════════════════════════════════════════════════════════════════
   // PHASE 5: Fix Tex/MathTex issues
   // ═══════════════════════════════════════════════════════════════════════════

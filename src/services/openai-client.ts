@@ -103,6 +103,8 @@ INVALID PATTERNS:
 ✗ run_time=0 (must be positive)
 ✗ rate_func=None (remove it if not needed)
 ✗ direction="UP" → ✓ direction=UP (no quotes)
+✗ Square(side=X) → ✓ Square(side_length=X)
+✗ next_to(obj, diagonal=X) → diagonal is invalid, use direction (UP/DOWN/LEFT/RIGHT)
 
 3D REQUIREMENTS:
 ✗ Surface() in Scene → ✓ Surface() in ThreeDScene
