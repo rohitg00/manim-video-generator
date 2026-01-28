@@ -1,0 +1,127 @@
+# Agent Swarm Configuration
+# Multi-agent orchestration settings for animation generation
+
+swarm:
+  # Operating mode: sequential | parallel | collaborative | competitive
+  # - sequential: Agents run one after another, each building on previous output
+  # - parallel: Independent agents run simultaneously, results merged
+  # - collaborative: Agents negotiate and refine together over multiple iterations
+  # - competitive: Multiple agents propose solutions, best one wins
+  mode: collaborative
+
+  # Active agents in the swarm
+  agents:
+    - prerequisite-explorer   # Identifies foundational concepts and prerequisites
+    - math-enricher          # Enhances mathematical content and formulas
+    - visual-designer        # Designs visual layout and element arrangement
+    - narrative-composer     # Creates narrative flow and explanation structure
+    - code-generator         # Generates final Manim Python code
+
+  # Optional agents (enable as needed)
+  # - quality-reviewer       # Reviews code quality and suggests improvements
+  # - style-harmonizer       # Ensures consistent visual style throughout
+
+  # Voting threshold for collaborative decisions (0.0 - 1.0)
+  # Higher values require more agent agreement
+  voting_threshold: 0.6
+
+  # Maximum iterations for collaborative mode
+  max_iterations: 3
+
+# Timeout settings (in milliseconds)
+timeouts:
+  # Maximum time per agent
+  agent_timeout: 30000
+
+  # Maximum total time for swarm coordination
+  total_timeout: 120000
+
+# Quality settings
+quality:
+  # Minimum quality score to accept result (0.0 - 1.0)
+  min_quality_score: 0.7
+
+  # Enable parallel processing where possible
+  enable_parallel: true
+
+  # Conflict resolution strategy: voting | priority | first-wins | best-quality
+  conflict_strategy: voting
+
+# Agent-specific settings
+agents:
+  prerequisite-explorer:
+    max_depth: 2
+    include_examples: true
+
+  math-enricher:
+    latex_validation: true
+    suggest_visualizations: true
+
+  visual-designer:
+    enforce_style_guide: true
+    suggest_colors: true
+
+  narrative-composer:
+    max_acts: 5
+    include_transitions: true
+
+  code-generator:
+    include_comments: true
+    validate_syntax: true
+    max_code_length: 500
+
+  quality-reviewer:
+    check_syntax: true
+    check_performance: true
+    suggest_improvements: true
+
+  style-harmonizer:
+    enforce_consistency: true
+    check_color_harmony: true
+
+# Swarm modes configuration
+modes:
+  sequential:
+    description: "Run agents one after another"
+    agent_order:
+      - prerequisite-explorer
+      - math-enricher
+      - visual-designer
+      - narrative-composer
+      - code-generator
+      - quality-reviewer
+
+  parallel:
+    description: "Run independent agents simultaneously"
+    independent_agents:
+      - prerequisite-explorer
+      - math-enricher
+      - visual-designer
+      - narrative-composer
+    dependent_agents:
+      - code-generator
+      - quality-reviewer
+
+  collaborative:
+    description: "Agents negotiate and refine together"
+    max_iterations: 3
+    convergence_threshold: 0.1
+    enable_voting: true
+
+  competitive:
+    description: "Multiple proposals, best wins"
+    num_proposals: 3
+    selection_criteria: quality_score
+    enable_ensemble: false
+
+# Event handling
+events:
+  log_level: info
+  emit_progress: true
+  track_timing: true
+
+# Cache settings
+cache:
+  enabled: true
+  ttl: 3600
+  max_size: 100
