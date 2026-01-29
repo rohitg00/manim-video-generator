@@ -460,7 +460,7 @@
                 const forceRefresh = document.getElementById('forceRefresh').checked;
 
                 // Submit generation request with style
-                const response = await fetch('/api/generate', {
+                const response = await fetch('https://eh2524-hjzqoc.ghumare64-rsnb.motia.cloud/api/generate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -500,7 +500,7 @@
                 pollCount++;
 
                 try {
-                    const response = await fetch(`/api/jobs/${jobId}`);
+                    const response = await fetch(`https://eh2524-hjzqoc.ghumare64-rsnb.motia.cloud/api/jobs/${jobId}`);
                     const data = await response.json();
 
                     if (data.status === 'completed') {
@@ -666,7 +666,7 @@
             refineBtn.innerHTML = '<div class="loading-spinner" style="width:16px;height:16px;border-width:2px;"></div> Refining...';
 
             try {
-                const response = await fetch('/api/refine', {
+                const response = await fetch('https://eh2524-hjzqoc.ghumare64-rsnb.motia.cloud/api/refine', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
