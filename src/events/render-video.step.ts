@@ -50,8 +50,8 @@ export const handler: Handlers['RenderVideo'] = async (input, { emit, logger }) 
   const mediaDir = path.join(tempDir, 'media')
   const codeFile = path.join(tempDir, 'scene.py')
 
-  // Output directory for final videos (dashboard public folder for direct serving)
-  const outputDir = path.join(process.cwd(), 'dashboard', 'public', 'videos')
+  // Output directory for final videos (configurable via env, defaults to dashboard public folder)
+  const outputDir = process.env.VIDEO_OUTPUT_DIR || path.join(process.cwd(), 'dashboard', 'public', 'videos')
 
   try {
     // Create directories

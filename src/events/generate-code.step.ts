@@ -53,9 +53,9 @@ function sanitizeManimCode(code: string): string {
   // PHASE 3: Fix Scene class issues
   // ═══════════════════════════════════════════════════════════════════════════
 
-  // camera.frame requires MovingCameraScene
+  // camera.frame requires MovingCameraScene - handle any Scene subclass name
   if (sanitized.includes('self.camera.frame') && !sanitized.includes('MovingCameraScene')) {
-    sanitized = sanitized.replace(/class\s+MainScene\s*\(\s*Scene\s*\)\s*:/g, 'class MainScene(MovingCameraScene):')
+    sanitized = sanitized.replace(/class\s+(\w+)\s*\(\s*Scene\s*\)\s*:/g, 'class $1(MovingCameraScene):')
   }
 
   // self.camera.background_color → config.background_color (Scene doesn't have this attribute)
@@ -71,8 +71,8 @@ function sanitizeManimCode(code: string): string {
   // to_edge(ORIGIN) is invalid → move_to(ORIGIN)
   sanitized = sanitized.replace(/\.to_edge\s*\(\s*ORIGIN\s*\)/g, '.move_to(ORIGIN)')
 
-  // scale_about_point doesn't exist on all objects → use .scale().move_to() pattern
-  sanitized = sanitized.replace(/\.scale_about_point\s*\(\s*([\d.]+)\s*,\s*([^)]+)\s*\)/g, '.scale($1)')
+  // scale_about_point → use .scale() with about_point parameter to preserve anchor
+  sanitized = sanitized.replace(/\.scale_about_point\s*\(\s*([\d.]+)\s*,\s*([^)]+)\s*\)/g, '.scale($1, about_point=$2)')
 
   // get_graph_label with deprecated parameters
   sanitized = sanitized.replace(/\.get_graph_label\s*\([^)]*direction\s*=[^)]*\)/g, (match) => {
@@ -102,7 +102,8 @@ function sanitizeManimCode(code: string): string {
 
   // Tex() with math → MathTex() (Tex is for text with some math, MathTex is pure math)
   // Only convert if it looks like pure math (starts with common math patterns)
-  sanitized = sanitized.replace(/Tex\s*\(\s*r?"\\\\(?:frac|int|sum|sqrt|lim)/g, 'MathTex(r"\\$&'.slice(0, -5))
+  // Use lookahead to avoid consuming the math command
+  sanitized = sanitized.replace(/Tex\s*\(\s*r?"(?=\\\\(?:frac|int|sum|sqrt|lim))/g, 'MathTex(r"')
 
   // Fix escaped backslashes in MathTex (AI sometimes double-escapes)
   sanitized = sanitized.replace(/MathTex\s*\(\s*r?"([^"]+)"\s*\)/g, (_match, content) => {

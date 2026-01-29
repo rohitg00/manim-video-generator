@@ -363,31 +363,23 @@ async function validateAndFix(code: string, sceneGraph: SceneGraph): Promise<Sta
   fixedCode = fixedCode.replace(/\.next_to\s*\(([^)]*),\s*diagonal\s*=\s*[\d.]+\s*\)/g, '.next_to($1)')
 
   // Fix 7: Fix camera.frame in non-MovingCameraScene
+  // Note: MovingCameraScene is already included in 'from manim import *'
   if (fixedCode.includes('self.camera.frame') && !fixedCode.includes('MovingCameraScene')) {
     fixedCode = fixedCode.replace(
       /class MainScene\(\s*Scene\s*\)/g,
       'class MainScene(MovingCameraScene)'
     )
-    if (!fixedCode.includes('from manim.scene.moving_camera_scene')) {
-      fixedCode = fixedCode.replace(
-        /from manim import \*/,
-        'from manim import *\nfrom manim.scene.moving_camera_scene import MovingCameraScene'
-      )
-    }
   }
 
-  // Fix 8: Fix 3D camera orientation angles
-  fixedCode = fixedCode.replace(/phi\s*=\s*(\d+)([,\)])/g, (match, num, suffix) => {
-    if (!match.includes('DEGREES')) {
-      return `phi=${num} * DEGREES${suffix}`
-    }
-    return match
+  // Fix 8: Fix 3D camera orientation angles (handle integers, floats, negatives)
+  // Only match when not already using DEGREES
+  fixedCode = fixedCode.replace(/phi\s*=\s*(-?[\d.]+)(\s*[,\)])/g, (match, num, suffix) => {
+    if (match.includes('DEGREES')) return match
+    return `phi=${num} * DEGREES${suffix}`
   })
-  fixedCode = fixedCode.replace(/theta\s*=\s*(\d+)([,\)])/g, (match, num, suffix) => {
-    if (!match.includes('DEGREES')) {
-      return `theta=${num} * DEGREES${suffix}`
-    }
-    return match
+  fixedCode = fixedCode.replace(/theta\s*=\s*(-?[\d.]+)(\s*[,\)])/g, (match, num, suffix) => {
+    if (match.includes('DEGREES')) return match
+    return `theta=${num} * DEGREES${suffix}`
   })
 
   // Fix 9: Set background color if specified
