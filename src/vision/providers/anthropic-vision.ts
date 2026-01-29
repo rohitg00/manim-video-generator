@@ -1,16 +1,40 @@
 
-import Anthropic from '@anthropic-ai/sdk';
 import { v4 as uuidv4 } from 'uuid';
 import type { Shape, TextElement, Relationship, VisionProviderInterface } from '../types';
 
-let anthropicClient: Anthropic | null = null;
+// Dynamic import type for Anthropic SDK
+type AnthropicType = import('@anthropic-ai/sdk').default;
+let anthropicClient: AnthropicType | null = null;
+let initPromise: Promise<AnthropicType | null> | null = null;
 
-try {
-  if (process.env.ANTHROPIC_API_KEY) {
-    anthropicClient = new Anthropic();
+async function getAnthropicClient(): Promise<AnthropicType | null> {
+  // Return cached client if already initialized
+  if (anthropicClient) {
+    return anthropicClient;
   }
-} catch (error) {
-  console.warn('Anthropic client initialization failed:', error);
+
+  // Return existing initialization promise if in progress (prevents race condition)
+  if (initPromise) {
+    return initPromise;
+  }
+
+  // Start initialization and cache the promise
+  initPromise = (async () => {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return null;
+    }
+
+    try {
+      const { default: Anthropic } = await import('@anthropic-ai/sdk');
+      anthropicClient = new Anthropic();
+      return anthropicClient;
+    } catch (error) {
+      console.warn('Anthropic SDK not available:', error);
+      return null;
+    }
+  })();
+
+  return initPromise;
 }
 
 const CLAUDE_MODEL = process.env.ANTHROPIC_VISION_MODEL || 'claude-sonnet-4-20250514';
@@ -30,17 +54,19 @@ export const anthropicVisionProvider: VisionProviderInterface = {
   name: 'anthropic',
 
   isAvailable(): boolean {
-    return anthropicClient !== null;
+    // Check synchronously if API key exists - actual client check happens async
+    return !!process.env.ANTHROPIC_API_KEY;
   },
 
   async analyzeImage(imageData: string, mimeType: string, userPrompt?: string) {
-    if (!anthropicClient) {
+    const client = await getAnthropicClient();
+    if (!client) {
       throw new Error('Anthropic client not available');
     }
 
     const mediaType = mimeType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
 
-    const response = await anthropicClient.messages.create({
+    const response = await client.messages.create({
       model: CLAUDE_MODEL,
       max_tokens: 2000,
       messages: [

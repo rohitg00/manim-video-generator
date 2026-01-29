@@ -50,8 +50,8 @@ export const handler: Handlers['RenderVideo'] = async (input, { emit, logger }) 
   const mediaDir = path.join(tempDir, 'media')
   const codeFile = path.join(tempDir, 'scene.py')
 
-  // Output directory for final videos
-  const outputDir = path.join(process.cwd(), 'public', 'videos')
+  // Output directory for final videos (configurable via env, defaults to dashboard public folder)
+  const outputDir = process.env.VIDEO_OUTPUT_DIR || path.join(process.cwd(), 'dashboard', 'public', 'videos')
 
   try {
     // Create directories
@@ -80,15 +80,19 @@ export const handler: Handlers['RenderVideo'] = async (input, { emit, logger }) 
     const result = await runManimCommand(args, tempDir, logger, jobId)
 
     if (!result.success) {
+      const parsedError = parseManimError(result.stderr)
       logger.error('Manim render failed', {
         jobId,
+        error: parsedError.error,
+        suggestion: parsedError.suggestion,
         stderr: result.stderr
       })
       await emit({
         topic: 'video.failed',
         data: {
           jobId,
-          error: 'Failed to render animation',
+          error: parsedError.error,
+          suggestion: parsedError.suggestion,
           details: result.stderr
         }
       })
@@ -250,4 +254,101 @@ function findFileRecursive(dir: string, filename: string): string | null {
   }
 
   return null
+}
+
+/**
+ * Parse Manim error output and return actionable feedback
+ */
+function parseManimError(stderr: string): { error: string; suggestion: string } {
+  const errorPatterns: Array<{ pattern: RegExp; error: string; suggestion: string }> = [
+    {
+      pattern: /NameError: name '(\w+)' is not defined/,
+      error: 'Undefined name',
+      suggestion: 'Check imports and variable names. Common issue: using ShowCreation instead of Create.'
+    },
+    {
+      pattern: /AttributeError: '(\w+)' object has no attribute '(\w+)'/,
+      error: 'Invalid attribute',
+      suggestion: 'Check if you\'re using the correct class. camera.frame requires MovingCameraScene, not Scene.'
+    },
+    {
+      pattern: /TypeError: (\w+)\(\) got an unexpected keyword argument '(\w+)'/,
+      error: 'Invalid parameter',
+      suggestion: 'Check parameter names. Common issues: dash_ratio (invalid), direction="UP" (should be direction=UP).'
+    },
+    {
+      pattern: /ImportError: cannot import name '(\w+)'/,
+      error: 'Import error',
+      suggestion: 'Check if the class exists in Manim CE. Some classes are renamed: TextMobject→Text, TexMobject→MathTex.'
+    },
+    {
+      pattern: /SyntaxError: (.*)/,
+      error: 'Python syntax error',
+      suggestion: 'Check for missing colons, unbalanced parentheses, or incorrect indentation.'
+    },
+    {
+      pattern: /IndentationError: (.*)/,
+      error: 'Indentation error',
+      suggestion: 'Use consistent 4-space indentation. Check the construct method is properly indented.'
+    },
+    {
+      pattern: /ValueError: math domain error/,
+      error: 'Math domain error',
+      suggestion: 'Check mathematical operations: sqrt of negative, log of zero, etc.'
+    },
+    {
+      pattern: /LaTeX Error|! LaTeX Error/,
+      error: 'LaTeX compilation error',
+      suggestion: 'Check LaTeX syntax in MathTex. Use raw strings r"\\frac{a}{b}" and escape backslashes properly.'
+    },
+    {
+      pattern: /RuntimeError: Latex.*not found/,
+      error: 'LaTeX not installed',
+      suggestion: 'LaTeX is required for MathTex. Install texlive or miktex.'
+    },
+    {
+      pattern: /ModuleNotFoundError: No module named '(\w+)'/,
+      error: 'Missing module',
+      suggestion: 'Required module not installed. Check if numpy is imported for 3D scenes.'
+    },
+    {
+      pattern: /Scene '(\w+)' not found/,
+      error: 'Scene not found',
+      suggestion: 'The scene class must be named MainScene. Check class definition.'
+    },
+    {
+      pattern: /has no attribute 'frame'/,
+      error: 'camera.frame error',
+      suggestion: 'self.camera.frame only works in MovingCameraScene, not Scene.'
+    },
+    {
+      pattern: /unexpected keyword argument 'side'/,
+      error: 'Invalid Square parameter',
+      suggestion: 'Use Square(side_length=X) not Square(side=X).'
+    },
+    {
+      pattern: /unexpected keyword argument 'diagonal'/,
+      error: 'Invalid next_to parameter',
+      suggestion: 'next_to() does not have a diagonal parameter. Use direction (UP, DOWN, LEFT, RIGHT) and buff.'
+    }
+  ]
+
+  for (const { pattern, error, suggestion } of errorPatterns) {
+    if (pattern.test(stderr)) {
+      return { error, suggestion }
+    }
+  }
+
+  // Extract the most relevant error line
+  const lines = stderr.split('\n')
+  const errorLine = lines.find(line =>
+    line.includes('Error') ||
+    line.includes('error') ||
+    line.includes('Exception')
+  )
+
+  return {
+    error: errorLine || 'Unknown render error',
+    suggestion: 'Check the Manim code for syntax errors and deprecated methods.'
+  }
 }

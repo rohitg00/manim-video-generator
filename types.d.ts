@@ -12,6 +12,8 @@ declare module 'motia' {
   }
 
   interface Handlers {
+    'ImageAnalyzer': EventHandler<unknown, { topic: 'animation.requested'; data: unknown }>
+    'SwarmOrchestrate': EventHandler<unknown, { topic: 'code.generated'; data: unknown }>
     'StoreResult': EventHandler<unknown, never>
     'RenderVideo': EventHandler<unknown, { topic: 'video.rendered'; data: unknown } | { topic: 'video.failed'; data: unknown }>
     'HandleCacheHit': EventHandler<unknown, never>
@@ -22,6 +24,10 @@ declare module 'motia' {
     'JobStatusApi': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, unknown> | ApiResponse<400, unknown>, never>
     'HealthCheck': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, unknown>, never>
     'GenerateApi': ApiRouteHandler<unknown, ApiResponse<202, unknown> | ApiResponse<400, unknown>, { topic: 'animation.requested'; data: unknown }>
+    'VisualDesigner': EventHandler<unknown, { topic: 'visual.designed'; data: unknown }>
+    'PrerequisiteExplorer': EventHandler<unknown, { topic: 'prerequisites.resolved'; data: unknown }>
+    'NarrativeComposer': EventHandler<unknown, never>
+    'MathEnricher': EventHandler<unknown, { topic: 'math.enriched'; data: unknown }>
   }
     
 }

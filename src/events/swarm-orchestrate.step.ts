@@ -11,7 +11,7 @@ import {
   createAnimationTask,
   type SwarmMode,
   type SwarmConfig,
-} from '../orchestration'
+} from '../orchestration/index'
 import type { NLUResult, StylePreset } from '../types/nlu.types'
 
 // Input schema - receives NLU result for swarm processing

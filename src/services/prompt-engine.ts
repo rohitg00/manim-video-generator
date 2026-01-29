@@ -232,10 +232,20 @@ async function generateCode(
     const styleConfig = sceneGraph.style
     const sceneClass = sceneGraph.is3D ? 'ThreeDScene' : (sceneGraph.useMovingCamera ? 'MovingCameraScene' : 'Scene')
 
-    const systemPrompt = `You are an expert Manim programmer creating beautiful mathematical animations.
-You write clean, well-structured Python code for Manim Community Edition.
-ALWAYS use the class name MainScene.
-Output ONLY valid Python code, no markdown or explanations.`
+    const systemPrompt = `You are an expert Manim Community Edition v0.18+ programmer creating beautiful mathematical animations.
+
+CRITICAL REQUIREMENTS:
+- Output ONLY valid Python code, no markdown, no explanations
+- Class MUST be named: class MainScene(Scene): (or ThreeDScene for 3D)
+- Start with: from manim import *
+- For 3D: add "import numpy as np" and use ThreeDScene
+- Use ONLY these animation names: Create(), Write(), FadeIn(), FadeOut(), Transform(), ReplacementTransform()
+- NEVER use: ShowCreation(), TextMobject(), TexMobject(), FadeInFrom(), GrowFromCenter()
+- NEVER use self.camera.frame (requires MovingCameraScene)
+- Use MathTex(r"\\frac{a}{b}") for math, Text("text") for plain text
+- Use color constants (BLUE, RED, YELLOW) not hex strings
+- For 3D cameras: phi=75 * DEGREES, theta=30 * DEGREES (include * DEGREES)
+- Always add self.wait() pauses between animations`
 
     const userPrompt = `Create a complete Manim animation based on:
 
@@ -298,6 +308,7 @@ Generate the complete Python code:`
 
 /**
  * Stage 4: Validate and fix common issues
+ * Enhanced with ManimCE best practices
  */
 async function validateAndFix(code: string, sceneGraph: SceneGraph): Promise<StageResult> {
   let fixedCode = code
@@ -307,18 +318,32 @@ async function validateAndFix(code: string, sceneGraph: SceneGraph): Promise<Sta
     fixedCode = 'from manim import *\n\n' + fixedCode
   }
 
-  // Fix 2: Ensure MainScene class exists
+  // Fix 2: Add numpy import for 3D scenes
+  if (sceneGraph.is3D && !fixedCode.includes('import numpy')) {
+    fixedCode = fixedCode.replace(
+      /from manim import \*/,
+      'from manim import *\nimport numpy as np'
+    )
+  }
+
+  // Fix 3: Ensure correct scene class for 3D
+  if (sceneGraph.is3D && !fixedCode.includes('ThreeDScene')) {
+    fixedCode = fixedCode.replace(
+      /class\s+(\w+)\s*\(\s*Scene\s*\)/g,
+      'class $1(ThreeDScene)'
+    )
+  }
+
+  // Fix 4: Ensure MainScene class exists
   if (!fixedCode.includes('class MainScene')) {
-    // Try to find any Scene class and rename it
     fixedCode = fixedCode.replace(
       /class\s+(\w+)\s*\(\s*(Scene|ThreeDScene|MovingCameraScene)\s*\)/,
       'class MainScene($2)'
     )
   }
 
-  // Fix 3: Ensure construct method exists
+  // Fix 5: Ensure construct method exists
   if (!fixedCode.includes('def construct(self)')) {
-    // If there's a class but no construct, add it
     if (fixedCode.includes('class MainScene')) {
       fixedCode = fixedCode.replace(
         /class MainScene\([^)]+\):\s*\n/,
@@ -327,7 +352,37 @@ async function validateAndFix(code: string, sceneGraph: SceneGraph): Promise<Sta
     }
   }
 
-  // Fix 4: Set background color if specified
+  // Fix 6: Replace deprecated methods and invalid parameters
+  fixedCode = fixedCode.replace(/ShowCreation\(/g, 'Create(')
+  fixedCode = fixedCode.replace(/TextMobject\(/g, 'Text(')
+  fixedCode = fixedCode.replace(/TexMobject\(/g, 'MathTex(')
+  fixedCode = fixedCode.replace(/GrowFromCenter\(/g, 'Create(')
+  fixedCode = fixedCode.replace(/arrange_submobjects\(/g, 'arrange(')
+  fixedCode = fixedCode.replace(/Square\s*\(\s*side\s*=/g, 'Square(side_length=')
+  fixedCode = fixedCode.replace(/\.next_to\s*\(([^)]*),\s*diagonal\s*=\s*[\d.]+\s*,?/g, '.next_to($1,')
+  fixedCode = fixedCode.replace(/\.next_to\s*\(([^)]*),\s*diagonal\s*=\s*[\d.]+\s*\)/g, '.next_to($1)')
+
+  // Fix 7: Fix camera.frame in non-MovingCameraScene
+  // Note: MovingCameraScene is already included in 'from manim import *'
+  if (fixedCode.includes('self.camera.frame') && !fixedCode.includes('MovingCameraScene')) {
+    fixedCode = fixedCode.replace(
+      /class MainScene\(\s*Scene\s*\)/g,
+      'class MainScene(MovingCameraScene)'
+    )
+  }
+
+  // Fix 8: Fix 3D camera orientation angles (handle integers, floats, negatives)
+  // Only match when not already using DEGREES
+  fixedCode = fixedCode.replace(/phi\s*=\s*(-?[\d.]+)(\s*[,\)])/g, (match, num, suffix) => {
+    if (match.includes('DEGREES')) return match
+    return `phi=${num} * DEGREES${suffix}`
+  })
+  fixedCode = fixedCode.replace(/theta\s*=\s*(-?[\d.]+)(\s*[,\)])/g, (match, num, suffix) => {
+    if (match.includes('DEGREES')) return match
+    return `theta=${num} * DEGREES${suffix}`
+  })
+
+  // Fix 9: Set background color if specified
   if (!fixedCode.includes('background_color') && sceneGraph.style.backgroundColor !== '#1a1a2e') {
     const configLine = `config.background_color = "${sceneGraph.style.backgroundColor}"\n`
     const insertPoint = fixedCode.indexOf('class MainScene')
@@ -336,7 +391,7 @@ async function validateAndFix(code: string, sceneGraph: SceneGraph): Promise<Sta
     }
   }
 
-  // Fix 5: Check for common syntax issues
+  // Fix 10: Check for common syntax issues
   const syntaxIssues = checkSyntax(fixedCode)
 
   return {
