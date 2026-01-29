@@ -1,4 +1,3 @@
-
 export type {
   AgentType,
   SwarmMode,
@@ -26,53 +25,19 @@ export type {
 export { DEFAULT_SWARM_CONFIG } from './types'
 
 export {
-  AgentSwarmCoordinator,
-  getAgentSwarm,
-  resetAgentSwarm,
-  createAnimationTask,
-  type AgentSwarm,
-} from './agent-swarm'
-
-export {
-  MessageQueue,
-  SwarmEventEmitter,
-  AgentCommunicationHub,
-  getCommunicationHub,
-  resetCommunicationHub,
-} from './agent-communication'
-
-export {
-  TaskDistributor,
-  getTaskDistributor,
-  resetTaskDistributor,
-} from './task-distributor'
-
-export {
-  QualityScorer,
-  getQualityScorer,
-  resetQualityScorer,
+  scoreOutput,
+  rankOutputs,
+  selectBestOutput,
+  getFeedback,
+  DEFAULT_WEIGHTS,
+  type ScoringWeights,
 } from './quality-scorer'
 
 export {
-  ConflictResolver,
-  getConflictResolver,
-  resetConflictResolver,
-} from './conflict-resolver'
-
-export {
-  ResultAggregator,
-  getResultAggregator,
-  resetResultAggregator,
+  aggregateOutputs,
+  createSwarmResult,
+  getOutputStats,
+  detectConflicts,
+  resolveConflict,
+  type AggregationStrategy,
 } from './result-aggregator'
-
-export {
-  BaseAgent,
-  PrerequisiteExplorerAgent,
-  MathEnricherAgent,
-  VisualDesignerAgent,
-  NarrativeComposerAgent,
-  CodeGeneratorAgent,
-  QualityReviewerAgent,
-  StyleHarmonizerAgent,
-  createAgents,
-} from './base-agent'

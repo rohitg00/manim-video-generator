@@ -1,20 +1,9 @@
-/**
- * Swarm Orchestration Step
- * Coordinates multi-agent swarm for complex animation generation
- * Wraps the existing pipeline with swarm orchestration capabilities
- */
-
 import { z } from 'zod'
-import type { EventConfig, Handlers } from 'motia'
-import {
-  getAgentSwarm,
-  createAnimationTask,
-  type SwarmMode,
-  type SwarmConfig,
-} from '../orchestration/index'
+import type { EventConfig } from 'motia'
+import { v4 as uuidv4 } from 'uuid'
+import { DEFAULT_SWARM_CONFIG, type SwarmMode, type SwarmConfig } from '../orchestration/types'
 import type { NLUResult, StylePreset } from '../types/nlu.types'
 
-// Input schema - receives NLU result for swarm processing
 const inputSchema = z.object({
   jobId: z.string(),
   concept: z.string(),
@@ -56,11 +45,36 @@ export const config: EventConfig = {
   name: 'SwarmOrchestrate',
   description: 'Coordinate multi-agent swarm for complex animation generation',
   subscribes: ['swarm.requested'],
-  emits: ['code.generated', 'swarm.completed', 'swarm.failed'],
+  emits: [
+    'code.generated',
+    'swarm.parallel.requested',
+    'swarm.collaborative.requested',
+    'swarm.competitive.requested',
+    'concept.analyzed',
+  ],
   input: inputSchema as any,
 }
 
-export const handler: Handlers['SwarmOrchestrate'] = async (input, { emit, logger }) => {
+function createAnimationTask(
+  jobId: string,
+  concept: string,
+  nluResult: NLUResult,
+  style: StylePreset,
+  quality: 'low' | 'medium' | 'high'
+) {
+  return {
+    id: uuidv4(),
+    jobId,
+    input: concept,
+    nluResult,
+    style,
+    quality,
+    priority: 5,
+    createdAt: Date.now(),
+  }
+}
+
+export const handler = async (input: unknown, { emit, logger }: { emit: any; logger: any }) => {
   const parsed = inputSchema.parse(input)
   const {
     jobId,
@@ -72,15 +86,16 @@ export const handler: Handlers['SwarmOrchestrate'] = async (input, { emit, logge
     useSwarm,
   } = parsed
 
+  const effectiveMode = swarmMode || 'sequential'
+
   logger.info('Starting swarm orchestration', {
     jobId,
-    mode: swarmMode || 'collaborative',
+    mode: effectiveMode,
     useSwarm,
     intent: nluResult.intent,
   })
 
   if (!useSwarm) {
-    // Skip swarm, emit directly to code.generated for legacy pipeline
     logger.info('Swarm disabled, using legacy pipeline', { jobId })
     await emit({
       topic: 'code.generated',
@@ -99,129 +114,136 @@ export const handler: Handlers['SwarmOrchestrate'] = async (input, { emit, logge
     return
   }
 
+  const taskId = uuidv4()
+  const effectiveStyle = (style || nluResult.style) as StylePreset
+
+  const task = createAnimationTask(
+    jobId,
+    concept,
+    nluResult as unknown as NLUResult,
+    effectiveStyle,
+    quality
+  )
+
+  const swarmConfig: Partial<SwarmConfig> = {
+    mode: effectiveMode as SwarmMode,
+    enableParallel: true,
+    maxIterations: 3,
+    minQualityScore: 0.7,
+  }
+
+  if (nluResult.entities.complexity === 'complex') {
+    swarmConfig.maxIterations = 4
+    swarmConfig.minQualityScore = 0.75
+  } else if (nluResult.entities.complexity === 'simple') {
+    swarmConfig.maxIterations = 2
+  }
+
+  logger.info('Created animation task', {
+    jobId,
+    taskId,
+    mode: effectiveMode,
+    complexity: nluResult.entities.complexity,
+  })
+
   try {
-    // Configure swarm based on mode
-    const swarmConfig: Partial<SwarmConfig> = {
-      mode: (swarmMode as SwarmMode) || 'collaborative',
-      enableParallel: true,
-      maxIterations: 3,
-      minQualityScore: 0.7,
-    }
-
-    // Adjust config based on task complexity
-    if (nluResult.entities.complexity === 'complex') {
-      swarmConfig.maxIterations = 4
-      swarmConfig.minQualityScore = 0.75
-    } else if (nluResult.entities.complexity === 'simple') {
-      swarmConfig.maxIterations = 2
-      swarmConfig.mode = 'parallel' // Faster for simple tasks
-    }
-
-    // Get or create swarm
-    const swarm = getAgentSwarm(swarmConfig)
-
-    // Create animation task
-    const task = createAnimationTask(
-      jobId,
-      concept,
-      nluResult as unknown as NLUResult,
-      (style || nluResult.style) as StylePreset,
-      quality
-    )
-
-    logger.info('Created animation task', {
-      jobId,
-      taskId: task.id,
-      mode: swarm.mode,
-      agentCount: swarm.agents.length,
-    })
-
-    // Coordinate swarm
-    const result = await swarm.coordinate(task)
-
-    logger.info('Swarm coordination complete', {
-      jobId,
-      taskId: task.id,
-      success: result.success,
-      qualityScore: result.qualityScore.toFixed(3),
-      totalTime: result.totalTime,
-      iterations: result.iterations,
-      participatingAgents: result.participatingAgents,
-      conflictCount: result.conflictResolutions.length,
-    })
-
-    if (result.success && result.code) {
-      // Emit successful result
-      await emit({
-        topic: 'code.generated',
-        data: {
-          jobId,
-          concept,
-          quality,
-          manimCode: result.code,
-          usedAI: true,
-          generationType: 'swarm',
-          skill: nluResult.suggestedSkill,
-          style: style || nluResult.style,
-          intent: nluResult.intent,
-          swarmMetadata: {
-            mode: result.mode,
-            iterations: result.iterations,
-            qualityScore: result.qualityScore,
-            participatingAgents: result.participatingAgents,
-            totalTime: result.totalTime,
+    switch (effectiveMode) {
+      case 'sequential':
+        await emit({
+          topic: 'concept.analyzed',
+          data: {
+            jobId,
+            concept,
+            quality,
+            analysisType: 'nlu',
+            manimCode: null,
+            needsAI: true,
+            skill: nluResult.suggestedSkill,
+            style: effectiveStyle,
+            intent: nluResult.intent,
           },
-        },
-      })
+        })
+        break
 
-      // Also emit swarm completed event for monitoring
-      await emit({
-        topic: 'swarm.completed',
-        data: {
-          jobId,
-          taskId: task.id,
-          success: true,
-          mode: result.mode,
-          qualityScore: result.qualityScore,
-          totalTime: result.totalTime,
-          iterations: result.iterations,
-          warnings: result.warnings,
-        },
-      })
-    } else {
-      // Swarm failed, emit failure event
-      logger.warn('Swarm orchestration failed', {
-        jobId,
-        warnings: result.warnings,
-        qualityScore: result.qualityScore,
-      })
+      case 'parallel':
+        await emit({
+          topic: 'swarm.parallel.requested',
+          data: {
+            jobId,
+            taskId,
+            concept,
+            quality,
+            style: effectiveStyle,
+            nluResult,
+            task,
+            config: {
+              mode: 'parallel',
+              agents: DEFAULT_SWARM_CONFIG.agents,
+              maxIterations: swarmConfig.maxIterations,
+              minQualityScore: swarmConfig.minQualityScore,
+            },
+          },
+        })
+        break
 
-      await emit({
-        topic: 'swarm.failed',
-        data: {
-          jobId,
-          taskId: task.id,
-          warnings: result.warnings,
-          qualityScore: result.qualityScore,
-        },
-      })
+      case 'collaborative':
+        await emit({
+          topic: 'swarm.collaborative.requested',
+          data: {
+            jobId,
+            taskId,
+            concept,
+            quality,
+            style: effectiveStyle,
+            nluResult,
+            task,
+            config: {
+              mode: 'collaborative',
+              agents: DEFAULT_SWARM_CONFIG.agents,
+              maxIterations: swarmConfig.maxIterations,
+              minQualityScore: swarmConfig.minQualityScore,
+              votingThreshold: DEFAULT_SWARM_CONFIG.votingThreshold,
+            },
+          },
+        })
+        break
 
-      // Fall back to legacy pipeline
-      await emit({
-        topic: 'code.generated',
-        data: {
-          jobId,
-          concept,
-          quality,
-          manimCode: null,
-          usedAI: false,
-          generationType: 'fallback',
-          skill: nluResult.suggestedSkill,
-          style: style || nluResult.style,
-          intent: nluResult.intent,
-          swarmFailed: true,
-        },
-      })
+      case 'competitive':
+        await emit({
+          topic: 'swarm.competitive.requested',
+          data: {
+            jobId,
+            taskId,
+            concept,
+            quality,
+            style: effectiveStyle,
+            nluResult,
+            task,
+            proposalCount: 3,
+            config: {
+              mode: 'competitive',
+              agents: DEFAULT_SWARM_CONFIG.agents,
+              minQualityScore: swarmConfig.minQualityScore,
+            },
+          },
+        })
+        break
+
+      default:
+        await emit({
+          topic: 'concept.analyzed',
+          data: {
+            jobId,
+            concept,
+            quality,
+            analysisType: 'nlu',
+            manimCode: null,
+            needsAI: true,
+            skill: nluResult.suggestedSkill,
+            style: effectiveStyle,
+            intent: nluResult.intent,
+          },
+        })
     }
   } catch (error) {
     logger.error('Swarm orchestration error', {
@@ -230,16 +252,6 @@ export const handler: Handlers['SwarmOrchestrate'] = async (input, { emit, logge
       stack: error instanceof Error ? error.stack : undefined,
     })
 
-    // Emit failure event
-    await emit({
-      topic: 'swarm.failed',
-      data: {
-        jobId,
-        error: String(error),
-      },
-    })
-
-    // Fall back to legacy pipeline
     await emit({
       topic: 'code.generated',
       data: {
