@@ -287,6 +287,7 @@ export function DocsSection() {
           <a
             href="https://docs.manim.community/"
             target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-[#2d2d2d] shadow-hard-sm hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
             style={{ borderRadius: '95px 8px 100px 8px / 8px 100px 8px 95px' }}
           >
@@ -297,6 +298,7 @@ export function DocsSection() {
           <a
             href="https://github.com/rohitg00/manim-video-generator"
             target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-[#2d2d2d] shadow-hard-sm hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
             style={{ borderRadius: '95px 8px 100px 8px / 8px 100px 8px 95px' }}
           >

@@ -19,7 +19,7 @@ declare module 'motia' {
     'HandleCacheHit': EventHandler<unknown, never>
     'GenerateCode': EventHandler<unknown, { topic: 'code.generated'; data: unknown }>
     'CheckCache': EventHandler<unknown, { topic: 'cache.hit'; data: unknown } | { topic: 'cache.miss'; data: unknown }>
-    'AnalyzeConcept': EventHandler<unknown, { topic: 'concept.analyzed'; data: never }>
+    'AnalyzeConcept': EventHandler<unknown, { topic: 'concept.analyzed'; data: unknown }>
     'RefineAnimation': ApiRouteHandler<Record<string, unknown>, unknown, { topic: 'animation.requested'; data: unknown }>
     'JobStatusApi': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, unknown> | ApiResponse<400, unknown>, never>
     'HealthCheck': ApiRouteHandler<Record<string, unknown>, ApiResponse<200, unknown>, never>

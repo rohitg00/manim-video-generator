@@ -5,27 +5,36 @@ import type { Shape, TextElement, Relationship, VisionProviderInterface } from '
 // Dynamic import type for Anthropic SDK
 type AnthropicType = import('@anthropic-ai/sdk').default;
 let anthropicClient: AnthropicType | null = null;
-let anthropicInitialized = false;
+let initPromise: Promise<AnthropicType | null> | null = null;
 
 async function getAnthropicClient(): Promise<AnthropicType | null> {
-  if (anthropicInitialized) {
+  // Return cached client if already initialized
+  if (anthropicClient) {
     return anthropicClient;
   }
 
-  anthropicInitialized = true;
-
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return null;
+  // Return existing initialization promise if in progress (prevents race condition)
+  if (initPromise) {
+    return initPromise;
   }
 
-  try {
-    const { default: Anthropic } = await import('@anthropic-ai/sdk');
-    anthropicClient = new Anthropic();
-    return anthropicClient;
-  } catch (error) {
-    console.warn('Anthropic SDK not available:', error);
-    return null;
-  }
+  // Start initialization and cache the promise
+  initPromise = (async () => {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return null;
+    }
+
+    try {
+      const { default: Anthropic } = await import('@anthropic-ai/sdk');
+      anthropicClient = new Anthropic();
+      return anthropicClient;
+    } catch (error) {
+      console.warn('Anthropic SDK not available:', error);
+      return null;
+    }
+  })();
+
+  return initPromise;
 }
 
 const CLAUDE_MODEL = process.env.ANTHROPIC_VISION_MODEL || 'claude-sonnet-4-20250514';

@@ -140,8 +140,11 @@ export function PromptEditor({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <label
-            className="flex cursor-pointer items-center gap-2 bg-white border-2 border-pencil px-3 py-2 text-sm font-bold text-pencil hover:bg-[#e5e0d8] transition-colors shadow-hard-sm"
+            className={`flex items-center gap-2 bg-white border-2 border-pencil px-3 py-2 text-sm font-bold text-pencil transition-colors shadow-hard-sm ${
+              disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-[#e5e0d8]'
+            }`}
             style={{ borderRadius: '95px 8px 100px 8px / 8px 100px 8px 95px', fontFamily: "'Patrick Hand', cursive" }}
+            aria-disabled={disabled}
           >
             <Image className="h-4 w-4" strokeWidth={2.5} />
             📎 Upload Diagram
@@ -149,7 +152,8 @@ export function PromptEditor({
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              onChange={handleImageUpload}
+              onChange={(e) => { if (!disabled) handleImageUpload(e) }}
+              disabled={disabled}
               className="hidden"
             />
           </label>

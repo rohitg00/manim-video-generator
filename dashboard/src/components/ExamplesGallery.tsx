@@ -107,9 +107,13 @@ export function ExamplesGallery({ onSelectPrompt }: ExamplesGalleryProps) {
     : EXAMPLES.filter(e => e.category === category)
 
   const handleCopy = async (example: Example) => {
-    await navigator.clipboard.writeText(example.prompt)
-    setCopiedId(example.id)
-    setTimeout(() => setCopiedId(null), 2000)
+    try {
+      await navigator.clipboard.writeText(example.prompt)
+      setCopiedId(example.id)
+      setTimeout(() => setCopiedId(null), 2000)
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err)
+    }
   }
 
   return (

@@ -102,8 +102,8 @@ function sanitizeManimCode(code: string): string {
 
   // Tex() with math → MathTex() (Tex is for text with some math, MathTex is pure math)
   // Only convert if it looks like pure math (starts with common math patterns)
-  // Use lookahead to avoid consuming the math command
-  sanitized = sanitized.replace(/Tex\s*\(\s*r?"(?=\\\\(?:frac|int|sum|sqrt|lim))/g, 'MathTex(r"')
+  // Use word boundary \b to avoid matching MathTex, and lookahead to preserve math command
+  sanitized = sanitized.replace(/\bTex\s*\(\s*r?"(?=\\\\(?:frac|int|sum|sqrt|lim))/g, 'MathTex(r"')
 
   // Fix escaped backslashes in MathTex (AI sometimes double-escapes)
   sanitized = sanitized.replace(/MathTex\s*\(\s*r?"([^"]+)"\s*\)/g, (_match, content) => {
@@ -139,9 +139,9 @@ function sanitizeManimCode(code: string): string {
     sanitized.includes('set_camera_orientation')
 
   if (uses3D) {
-    // Ensure ThreeDScene is used
-    if (!sanitized.includes('ThreeDScene') && sanitized.includes('class MainScene(Scene):')) {
-      sanitized = sanitized.replace(/class\s+MainScene\s*\(\s*Scene\s*\)\s*:/g, 'class MainScene(ThreeDScene):')
+    // Ensure ThreeDScene is used for any Scene subclass (not just MainScene)
+    if (!sanitized.includes('ThreeDScene')) {
+      sanitized = sanitized.replace(/class\s+(\w+)\s*\(\s*Scene\s*\)\s*:/g, 'class $1(ThreeDScene):')
     }
 
     // Ensure numpy is imported for 3D math
@@ -259,12 +259,13 @@ function sanitizeManimCode(code: string): string {
 
   // If still no MainScene, check if there's a construct method floating around
   if (!sanitized.includes('class MainScene') && sanitized.includes('def construct(self)')) {
-    // Wrap the code in a proper class
+    // Wrap the code in a proper class - use ThreeDScene if 3D primitives detected
     const constructIndex = sanitized.indexOf('def construct(self)')
     if (constructIndex > 0) {
       const beforeConstruct = sanitized.slice(0, constructIndex)
       const fromConstruct = sanitized.slice(constructIndex)
-      sanitized = beforeConstruct + '\nclass MainScene(Scene):\n    ' + fromConstruct.replace(/\n/g, '\n    ')
+      const baseClass = uses3D ? 'ThreeDScene' : 'Scene'
+      sanitized = beforeConstruct + `\nclass MainScene(${baseClass}):\n    ` + fromConstruct.replace(/\n/g, '\n    ')
     }
   }
 

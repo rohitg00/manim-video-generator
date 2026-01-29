@@ -139,6 +139,7 @@ export default function App() {
           <a
             href="https://github.com/rohitg00/manim-video-generator"
             target="_blank"
+            rel="noopener noreferrer"
             className="p-2 border-2 border-[#2d2d2d] bg-white shadow-hard-sm hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
             style={{ borderRadius: '15px 255px 15px 225px / 225px 15px 255px 15px' }}
           >
@@ -527,7 +528,7 @@ export default function App() {
               <BookOpen className="h-4 w-4" strokeWidth={2.5} />
               Docs
             </button>
-            <a href="https://github.com/rohitg00/manim-video-generator" target="_blank" className="text-[#2d2d2d]/60 hover:text-[#2d2d2d] flex items-center gap-1">
+            <a href="https://github.com/rohitg00/manim-video-generator" target="_blank" rel="noopener noreferrer" className="text-[#2d2d2d]/60 hover:text-[#2d2d2d] flex items-center gap-1">
               <Github className="h-4 w-4" strokeWidth={2.5} />
               GitHub
             </a>
