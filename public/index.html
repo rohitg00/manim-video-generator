@@ -431,9 +431,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-python.min.js"></script>
 
     <script>
-        // API Configuration - change this for different environments
-        const API_BASE_URL = window.MANIM_API_URL || 'https://eh2524-hjzqoc.ghumare64-rsnb.motia.cloud';
-
         let currentJobId = null;
         let pollInterval = null;
 
@@ -463,7 +460,7 @@
                 const forceRefresh = document.getElementById('forceRefresh').checked;
 
                 // Submit generation request with style
-                const response = await fetch(`${API_BASE_URL}/api/generate`, {
+                const response = await fetch('https://eh2524-hjzqoc.ghumare64-rsnb.motia.cloud/api/generate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -503,7 +500,7 @@
                 pollCount++;
 
                 try {
-                    const response = await fetch(`${API_BASE_URL}/api/jobs/${jobId}`);
+                    const response = await fetch(`https://eh2524-hjzqoc.ghumare64-rsnb.motia.cloud/api/jobs/${jobId}`);
                     const data = await response.json();
 
                     if (data.status === 'completed') {
@@ -669,7 +666,7 @@
             refineBtn.innerHTML = '<div class="loading-spinner" style="width:16px;height:16px;border-width:2px;"></div> Refining...';
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/refine`, {
+                const response = await fetch('https://eh2524-hjzqoc.ghumare64-rsnb.motia.cloud/api/refine', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
