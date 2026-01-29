@@ -181,18 +181,25 @@ User Input → NLU Classifier → Scene Composer → Prompt Engine → Manim Cod
 Install animation skills for enhanced generation:
 
 ```bash
-# Using SkillKit (recommended)
+# Using SkillKit (Recommended) - Install all skills
 npx skillkit install rohitg00/manim-video-generator/skills
 
-# Using skills.sh
+# Or install individual skills
+skillkit install rohitg00/manim-video-generator/skills/math-visualizer
+skillkit install rohitg00/manim-video-generator/skills/motion-graphics
+skillkit install rohitg00/manim-video-generator/skills/animation-composer
+skillkit install rohitg00/manim-video-generator/skills/visual-storyteller
+
+# Using skills.sh (alternative)
 npx skills add rohitg00/manim-video-generator/
 ```
 
 Available skills:
-- **math-visualizer** - Equations, proofs, graphs, geometric concepts
-- **animation-composer** - Multi-act scenes, transitions, camera control
-- **visual-storyteller** - Step-by-step explanations, narratives
-- **motion-graphics** - Kinetic typography, logos, title sequences
+- **math-visualizer** - Equations, proofs, graphs, geometric concepts, concept decomposition
+- **animation-composer** - Multi-act scenes, transitions, camera control, scene planning, layout validation
+- **visual-storyteller** - Step-by-step explanations, narratives, CLEAR framework, process visualization
+- **motion-graphics** - Kinetic typography, logos, title sequences, audio sync, web export, thumbnails
+- **shared** - Core animations library, easing reference (used by all skills)
 
 ### Style Presets
 
